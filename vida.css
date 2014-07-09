@@ -1,10 +1,14 @@
 #vida-body{
     position:relative;
     width:95%;
-    padding-left:2.5%;
+    max-height:100%;
+    max-width:100%;
+    margin-left:2.5%;
+    overflow:auto;
 }
 .vida-page-controls{
     width:100%;
+    text-align:center;
 }
 .vida-prev-page{
     background-image:url('images/glyphicons_210_left_arrow.png');
@@ -29,4 +33,27 @@
     cursor: pointer;
     width:20px;
     height:18px;
+}
+.vida-zoom-controls{
+    margin-left: auto;
+    margin-right: auto;
+    display: block;   
+    top: 2em;
+}
+.vida-zoom-in{
+    background-image:url('images/glyphicons_236_zoom_in.png');
+    background-repeat:no-repeat;
+    display:inline-block;
+    width:25px;
+    height:25px;
+    padding-right:5px;
+    cursor: pointer;
+}
+.vida-zoom-out{
+    background-image:url('images/glyphicons_237_zoom_out.png');
+    background-repeat:no-repeat;
+    display:inline-block;
+    width:25px;
+    height:25px;
+    cursor: pointer;
 }
