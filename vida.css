@@ -1,13 +1,32 @@
-#verovio{
-	width:95%;
-	padding-left:2.5%;
+#vida-body{
+    position:relative;
+    width:95%;
+    padding-left:2.5%;
 }
-#verovio-wrapper{
+.vida-page-controls{
     width:100%;
-    height:100%;
-	padding-left:50;
 }
-html, body{
-    padding:0em;
-    margin:0em;
+.vida-prev-page{
+    background-image:url('images/glyphicons_210_left_arrow.png');
+    background-repeat:no-repeat;
+    position:absolute;
+    top:2em;
+    left:2em;
+    float:left;
+    z-index: 2;
+    cursor: pointer;
+    width:20px;
+    height:18px;
+}
+.vida-next-page{
+    background-image:url('images/glyphicons_211_right_arrow.png');
+    background-repeat:no-repeat;
+    position:absolute;
+    float:right;
+    top:2em;
+    right:2em;
+    z-index: 2;
+    cursor: pointer;
+    width:20px;
+    height:18px;
 }

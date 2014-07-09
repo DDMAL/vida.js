@@ -1,52 +1,56 @@
 (function ($)
 {
     var vida = function(element, options){
-    	console.log('created');
-    	$(element).append('<div id="prev">Prev</div>' +
-            '<div id="next">Next</div>' +
-            '<div id="verovio">' +
+
+        $(element).append(
+            '<div class="vida-page-controls">' +
+                '<div class="vida-prev-page"></div>' +
+                '<div class="vida-next-page"></div>' +
+            '</div>' +
+            '<div id="vida-body">' +
                 'Loading...' +
             '</div>');
 
-    	var vrvToolkit = new verovio.toolkit();
-        var vWidth = $("#verovio").width();
+        var vrvToolkit = new verovio.toolkit();
         var scaleIn = 40;
 
         var vOptions = {
-            pageHeight: $("#verovio").height()*(100/scaleIn),
-            pageWidth: $("#verovio").width()*(100/scaleIn),
+            pageHeight: $("#vida-body").height()*(100/scaleIn),
+            pageWidth: $("#vida-body").width()*(100/scaleIn),
             inputFormat: 'mei',
             scale: scaleIn,
             adjustPageHeight: 1,
             adjustPageWidth: 1,
             ignoreLayout: 1
         };
+
         vrvToolkit.setOptions(JSON.stringify(vOptions));
 
         var currentPage = 1;
         var totalPages;
         var dataGlobal;
+
         $.get( "Guami_Canzona_24.mei", function( data ) {
             dataGlobal = data;
             refreshVerovio();
             totalPages = vrvToolkit.getPageCount();
         });
-        
-        $("#next").on('click', function()
+
+        $(".vida-next-page").on('click', function()
         {
             if(currentPage < totalPages)
             {
-                currentPage+=1;
-                $("#verovio").html(vrvToolkit.renderPage(currentPage));
+                currentPage += 1;
+                $("#vida-body").html(vrvToolkit.renderPage(currentPage));
             }
         });
 
-        $("#prev").on('click', function()
+        $(".vida-prev-page").on('click', function()
         {
             if(currentPage > 1)
             {
-                currentPage-=1;
-                $("#verovio").html(vrvToolkit.renderPage(currentPage));
+                currentPage -= 1;
+                $("#vida-body").html(vrvToolkit.renderPage(currentPage));
             }
         });
 
@@ -55,7 +59,7 @@
             vrvToolkit.loadData( dataGlobal + "\n" );
             vrvToolkit.setOptions(JSON.stringify(vOptions));
             var svg = vrvToolkit.renderPage(1);
-            $("#verovio").html(svg);
+            $("#vida-body").html(svg);
         }
 
     };
@@ -73,7 +77,6 @@
             // Save the reference to the container element
             options.parentSelector = element;
 
-        	console.log("here");
             // Otherwise, instantiate the document viewer
             var vidaObject = new vida(this, options);
             element.data('vida', vidaObject);
