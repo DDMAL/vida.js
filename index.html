@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>MEI Editor - Verovio Demo</title>
+
+        <!--<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">-->
+        <link rel="stylesheet" href="vida.css">
+
+        <!--foreign libraries -->
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js" ></script>
+        <!--<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>-->
+
+        <script src="verovio-toolkit-0.9.1.js"></script>
+
+    </head>
+    <body>
+        <div id="verovio-wrapper">
+            <div onclick="prev()">Prev</div>
+            <div onclick="next()">Next</div>
+            <div id="verovio">
+                Loading...
+            </div>
+        </div>
+    </body>
+
+    <script>
+        var vrvToolkit = new verovio.toolkit();
+        var vWidth = $("#verovio").width();
+        var scaleIn = 40;
+
+        var vOptions = {
+            pageHeight: $("#verovio").height()*(100/scaleIn),
+            pageWidth: $("#verovio").width()*(100/scaleIn),
+            inputFormat: 'mei',
+            scale: scaleIn,
+            adjustPageHeight: 1,
+            adjustPageWidth: 1,
+            ignoreLayout: 1
+        };
+        vrvToolkit.setOptions(JSON.stringify(vOptions));
+
+        var currentPage = 1;
+        var totalPages;
+        var dataGlobal;
+        $.get( "Guami_Canzona_24.mei", function( data ) {
+            dataGlobal = data;
+            refreshVerovio();
+            totalPages = vrvToolkit.getPageCount();
+        });
+        function next()
+        {
+            if(currentPage < totalPages)
+            {
+                currentPage+=1;
+                $("#verovio").html(vrvToolkit.renderPage(currentPage));
+            }
+        }
+
+        function prev()
+        {
+            if(currentPage > 1)
+            {
+                currentPage-=1;
+                $("#verovio").html(vrvToolkit.renderPage(currentPage));
+            }
+        }
+
+        function refreshVerovio()
+        {
+            vrvToolkit.loadData( dataGlobal + "\n" );
+            vrvToolkit.setOptions(JSON.stringify(vOptions));
+            var svg = vrvToolkit.renderPage(1);
+            $("#verovio").html(svg);
+        }
+
+    </script>
+</html> 
