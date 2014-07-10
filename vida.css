@@ -6,6 +6,10 @@
     margin-left:2.5%;
     overflow:auto;
 }
+svg{
+    display: block;
+    margin:0 auto;
+}
 .vida-page-controls{
     width:100%;
     text-align:center;
@@ -35,8 +39,7 @@
     height:18px;
 }
 .vida-zoom-controls{
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0 auto;
     display: block; 
 }
 .vida-zoom-in{

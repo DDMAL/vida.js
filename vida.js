@@ -18,33 +18,50 @@
 
         function resizeComponents()
         {
-            /*$("#vida-body").offset({'top': $(".vida-prev-page").offset().top + $(".vida-page-controls").height()});
-            $("#vida-body").css({
-                'max-height': $("#vida-body").height(),
-                'max-width': $("#vida-body").width()
-            });
-            initialPageHeight = $("#vida-body").height() * (100 / currentScale);
-            initialPageWidth = $("#vida-body").width() * (100 / currentScale);*/
+            $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
+            $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
+            $("#vida-body").width(options.parentSelector.width() * 0.95);
+            $("#vida-body").css('margin-left', options.parentSelector.width() * 0.025);     
+        }
+
+        function refreshVerovio()
+        {
+            $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
+            $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
+            $("#vida-body").width(options.parentSelector.width() * 0.95);
+            vrvToolkit.loadData( dataGlobal + "\n" );
+            vrvToolkit.setOptions(JSON.stringify({
+                pageHeight: initialPageHeight,
+                pageWidth: initialPageWidth,
+                inputFormat: 'mei',
+                scale: currentScale,
+                adjustPageHeight: 1,
+                ignoreLayout: 1,
+                border: 0
+            }));
+            //console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, "--ignore-layout --adjust-page-height Guami_Canzona_24.mei");    
+            var svg = vrvToolkit.renderPage(currentPage);
+            $("svg").remove();
+            $("#vida-body").html(svg);
         }
 
         var vrvToolkit = new verovio.toolkit();
         var currentScale = 40;
         var currentPage = 1;
-        var initialPageHeight;
-        var initialPageWidth;
+        var initialPageHeight = $("#vida-body").height() * (100 / currentScale);
+        var initialPageWidth = $("#vida-body").width() * (100 / currentScale);
+        var totalPages;
+        var dataGlobal;
 
         vrvToolkit.setOptions(JSON.stringify({
-            pageHeight: $("#vida-body").height() * (100 / currentScale),
-            pageWidth: $("#vida-body").width() * (100 / currentScale),
+            pageHeight: initialPageHeight,
+            pageWidth: initialPageWidth,
             inputFormat: 'mei',
             scale: currentScale,
             adjustPageHeight: 1,
-            adjustPageWidth: 1,
             ignoreLayout: 1
         }));
 
-        var totalPages;
-        var dataGlobal;
 
         $.get("Guami_Canzona_24.mei", function(data) 
         {
@@ -92,28 +109,7 @@
             }
         });
 
-        function refreshVerovio()
-        {
-            $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
-            $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
-            $("#vida-body").width(options.parentSelector.width() * 0.95);
-            initialPageHeight = $("#vida-body").height() * (100 / currentScale);
-            initialPageWidth = $("#vida-body").width() * (100 / currentScale);
-            vrvToolkit.loadData( dataGlobal + "\n" );
-            vrvToolkit.setOptions(JSON.stringify({
-                pageHeight: initialPageHeight,
-                pageWidth: initialPageWidth,
-                inputFormat: 'mei',
-                scale: currentScale,
-                adjustPageHeight: 1,
-                ignoreLayout: 1,
-                border: 0
-            }));
-            console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, "--ignore-layout --adjust-page-height Guami_Canzona_24.mei");    
-            var svg = vrvToolkit.renderPage(currentPage);
-            $("svg").remove();
-            $("#vida-body").html(svg);
-        }
+        $(window).on('resize', resizeComponents);
 
     };
 
