@@ -32,6 +32,11 @@
     </body>
 
     <script>
+    $(window).on('resize', function()
+    {
+        $("#verovio-wrapper").height(window.innerHeight);
+    });
+    $(window).trigger('resize');
     $("#verovio-wrapper").vida({});
     </script>
 </html> 

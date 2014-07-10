@@ -1,6 +1,7 @@
 (function ($)
 {
-    var vida = function(element, options){
+    var vida = function(element, options)
+    {
 
         $(element).append(
             '<div class="vida-page-controls">' +
@@ -15,14 +16,15 @@
                 'Loading...' +
             '</div>');
 
-        function resizeComponents(){
-            $("#vida-body").offset({'top': $(".vida-prev-page").offset().top + $(".vida-prev-page").height()})
+        function resizeComponents()
+        {
+            /*$("#vida-body").offset({'top': $(".vida-prev-page").offset().top + $(".vida-page-controls").height()});
             $("#vida-body").css({
                 'max-height': $("#vida-body").height(),
                 'max-width': $("#vida-body").width()
             });
-            initialPageHeight = $("#vida-body").height()*(100/currentScale);
-            initialPageWidth = $("#vida-body").width()*(100/currentScale);
+            initialPageHeight = $("#vida-body").height() * (100 / currentScale);
+            initialPageWidth = $("#vida-body").width() * (100 / currentScale);*/
         }
 
         var vrvToolkit = new verovio.toolkit();
@@ -32,8 +34,8 @@
         var initialPageWidth;
 
         vrvToolkit.setOptions(JSON.stringify({
-            pageHeight: $("#vida-body").height()*(100/currentScale),
-            pageWidth: $("#vida-body").width()*(100/currentScale),
+            pageHeight: $("#vida-body").height() * (100 / currentScale),
+            pageWidth: $("#vida-body").width() * (100 / currentScale),
             inputFormat: 'mei',
             scale: currentScale,
             adjustPageHeight: 1,
@@ -44,7 +46,8 @@
         var totalPages;
         var dataGlobal;
 
-        $.get( "Guami_Canzona_24.mei", function( data ) {
+        $.get("Guami_Canzona_24.mei", function(data) 
+        {
             dataGlobal = data;
             refreshVerovio();
             totalPages = vrvToolkit.getPageCount();
@@ -53,7 +56,7 @@
 
         $(".vida-next-page").on('click', function()
         {
-            if(currentPage < totalPages)
+            if (currentPage < totalPages)
             {
                 currentPage += 1;
                 refreshVerovio();
@@ -64,7 +67,7 @@
 
         $(".vida-prev-page").on('click', function()
         {
-            if(currentPage > 1)
+            if (currentPage > 1)
             {
                 currentPage -= 1;
                 refreshVerovio();
@@ -73,7 +76,7 @@
 
         $(".vida-zoom-in").on('click', function()
         {
-            if(currentScale <= 100)
+            if (currentScale <= 100)
             {
                 currentScale += 10;
                 refreshVerovio();
@@ -82,7 +85,7 @@
 
         $(".vida-zoom-out").on('click', function()
         {
-            if(currentScale > 10)
+            if (currentScale > 10)
             {
                 currentScale -= 10;
                 refreshVerovio();
@@ -91,6 +94,11 @@
 
         function refreshVerovio()
         {
+            $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
+            $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
+            $("#vida-body").width(options.parentSelector.width() * 0.95);
+            initialPageHeight = $("#vida-body").height() * (100 / currentScale);
+            initialPageWidth = $("#vida-body").width() * (100 / currentScale);
             vrvToolkit.loadData( dataGlobal + "\n" );
             vrvToolkit.setOptions(JSON.stringify({
                 pageHeight: initialPageHeight,
@@ -101,9 +109,10 @@
                 ignoreLayout: 1,
                 border: 0
             }));
+            console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, "--ignore-layout --adjust-page-height Guami_Canzona_24.mei");    
             var svg = vrvToolkit.renderPage(currentPage);
+            $("svg").remove();
             $("#vida-body").html(svg);
-            console.log($($("#vida-body").children()[0]).width(), $("#vida-body").width());
         }
 
     };
