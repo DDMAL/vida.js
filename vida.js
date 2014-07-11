@@ -5,12 +5,12 @@
 
         $(element).append(
             '<div class="vida-page-controls">' +
-                '<div class="vida-prev-page"></div>' +
+                //'<div class="vida-prev-page"></div>' +
                 '<div class="vida-zoom-controls">' +
                     '<span class="vida-zoom-in"></span>' +
                     '<span class="vida-zoom-out"></span>' +
                 '</div>' +
-                '<div class="vida-next-page"></div>' +
+                //'<div class="vida-next-page"></div>' +
             '</div>' +
             '<div id="vida-body">' +
                 'Loading...' +
@@ -30,6 +30,7 @@
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
             vrvToolkit.loadData( dataGlobal + "\n" );
+            totalPages = vrvToolkit.getPageCount();
             vrvToolkit.setOptions(JSON.stringify({
                 pageHeight: initialPageHeight,
                 pageWidth: initialPageWidth,
@@ -40,14 +41,17 @@
                 border: 0
             }));
             //console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, "--ignore-layout --adjust-page-height Guami_Canzona_24.mei");    
-            var svg = vrvToolkit.renderPage(currentPage);
-            $("svg").remove();
-            $("#vida-body").html(svg);
+            $("#vida-body").html("");
+            for(var curPage = 1; curPage < totalPages; curPage++)
+            {
+                var svg = vrvToolkit.renderPage(curPage);
+                $("#vida-body").append(svg);
+            }
         }
 
         var vrvToolkit = new verovio.toolkit();
         var currentScale = 40;
-        var currentPage = 1;
+        var currentPage = 0; //0-index as this is used to navigate $("svg")
         var initialPageHeight = $("#vida-body").height() * (100 / currentScale);
         var initialPageWidth = $("#vida-body").width() * (100 / currentScale);
         var totalPages;
@@ -67,8 +71,8 @@
         {
             dataGlobal = data;
             refreshVerovio();
-            totalPages = vrvToolkit.getPageCount();
             resizeComponents();
+            $(".vida-prev-page").css('visibility', 'hidden');
         });
 
         $(".vida-next-page").on('click', function()
@@ -76,9 +80,18 @@
             if (currentPage < totalPages)
             {
                 currentPage += 1;
-                refreshVerovio();
-                $("#vida-body").scrollTop(0);
+                var newTop = $("svg")[currentPage].getBoundingClientRect().top;
+                $("#vida-body").scrollTop(newTop - $(".vida-page-controls").outerHeight());
                 $("#vida-body").scrollLeft(0);
+            }
+
+            if(currentPage == totalPages)
+            {
+                $(".vida-next-page").css('visibility', 'hidden');
+            }
+            else if($(".vida-prev-page").css('visibility') == 'hidden')
+            {
+                $(".vida-prev-page").css('visibility', 'visible');
             }
         });
 
@@ -87,7 +100,17 @@
             if (currentPage > 1)
             {
                 currentPage -= 1;
-                refreshVerovio();
+                var newTop = $("svg")[currentPage].getBoundingClientRect().top;
+                $("#vida-body").scrollTop(newTop - $(".vida-page-controls").outerHeight());
+            }
+
+            if(currentPage == 1)
+            {
+                $(".vida-prev-page").css('visibility', 'hidden');
+            }
+            else if($(".vida-next-page").css('visibility') == 'hidden')
+            {
+                $(".vida-next-page").css('visibility', 'visible');
             }
         });
 
@@ -98,6 +121,14 @@
                 currentScale += 10;
                 refreshVerovio();
             }
+            if(currentScale == 100)
+            {
+                $(".vida-zoom-in").css('visibility', 'hidden');
+            }
+            else if($(".vida-zoom-out").css('visibility') == 'hidden')
+            {
+                $(".vida-zoom-out").css('visibility', 'visible');
+            }
         });
 
         $(".vida-zoom-out").on('click', function()
@@ -106,6 +137,14 @@
             {
                 currentScale -= 10;
                 refreshVerovio();
+            }
+            if(currentPage == 10)
+            {
+                $(".vida-zoom-out").css('visibility', 'hidden');
+            }
+            else if($(".vida-zoom-in").css('visibility') == 'hidden')
+            {
+                $(".vida-zoom-in").css('visibility', 'visible');
             }
         });
 
