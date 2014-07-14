@@ -2,6 +2,12 @@
 {
     var vida = function(element, options)
     {
+        var settings = {
+            fileOnLoad: "",         //load a file in by default
+            fileOnLoadIsURL: false, //whether said file is a URL or is already-loaded data
+        };
+
+        $.extend(settings, options);
 
         $(element).append(
             '<div class="vida-page-controls">' +
@@ -49,6 +55,12 @@
             }
         }
 
+        this.changePage = function(newPage)
+        {
+            dataGlobal = newPage;
+            refreshVerovio();
+        }
+
         var vrvToolkit = new verovio.toolkit();
         var currentScale = 40;
         var currentPage = 0; //0-index as this is used to navigate $("svg")
@@ -66,14 +78,24 @@
             ignoreLayout: 1
         }));
 
-
-        $.get("Guami_Canzona_24.mei", function(data) 
+        if(options.fileOnLoad && options.fileOnLoadIsURL)
         {
-            dataGlobal = data;
-            refreshVerovio();
-            resizeComponents();
-            $(".vida-prev-page").css('visibility', 'hidden');
-        });
+            $.get(options.fileOnLoad, function(data) 
+            {
+                dataGlobal = data;
+                refreshVerovio();
+                resizeComponents();
+                $(".vida-prev-page").css('visibility', 'hidden');
+            });
+        }
+        else if(options.fileOnLoad && !options.fileOnLoadIsURL)
+        {
+            dataGlobal = options.fileOnLoad;
+        }
+        else
+        {
+            $("#vida-body").html("<h4>Load a file into Verovio!</h4>");
+        }
 
         $(".vida-next-page").on('click', function()
         {
