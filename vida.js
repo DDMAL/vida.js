@@ -35,18 +35,19 @@
             $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
-            vrvToolkit.loadData( dataGlobal + "\n" );
-            totalPages = vrvToolkit.getPageCount();
             vrvToolkit.setOptions(JSON.stringify({
                 pageHeight: initialPageHeight,
                 pageWidth: initialPageWidth,
                 inputFormat: 'mei',
                 scale: currentScale,
                 adjustPageHeight: 1,
-                ignoreLayout: 1,
+                noLayout: 1,
+                //ignoreLayout: 1,
                 border: 0
             }));
-            //console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, "--ignore-layout --adjust-page-height Guami_Canzona_24.mei");    
+            vrvToolkit.loadData( dataGlobal + "\n" );
+            totalPages = vrvToolkit.getPageCount();
+            console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, "--ignore-layout --adjust-page-height Guami_Canzona_24.mei");    
             $("#vida-body").html("");
             for(var curPage = 1; curPage < totalPages; curPage++)
             {
@@ -68,15 +69,6 @@
         var initialPageWidth = $("#vida-body").width() * (100 / currentScale);
         var totalPages;
         var dataGlobal;
-
-        vrvToolkit.setOptions(JSON.stringify({
-            pageHeight: initialPageHeight,
-            pageWidth: initialPageWidth,
-            inputFormat: 'mei',
-            scale: currentScale,
-            adjustPageHeight: 1,
-            ignoreLayout: 1
-        }));
 
         if(options.fileOnLoad && options.fileOnLoadIsURL)
         {
