@@ -35,20 +35,22 @@
             $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
-            vrvToolkit.loadData( dataGlobal + "\n" );
-            totalPages = vrvToolkit.getPageCount();
             vrvToolkit.setOptions(JSON.stringify({
                 pageHeight: initialPageHeight,
                 pageWidth: initialPageWidth,
                 inputFormat: 'mei',
                 scale: currentScale,
                 adjustPageHeight: 1,
-                ignoreLayout: 1,
-                border: 0
+                noLayout: 1,
+                //ignoreLayout: 1,
+                border: 50
             }));
-            //console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, "--ignore-layout --adjust-page-height Guami_Canzona_24.mei");    
+            vrvToolkit.loadData( dataGlobal + "\n" );
+            totalPages = vrvToolkit.getPageCount();
+            console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, "--ignore-layout --adjust-page-height Guami_Canzona_24.mei");    
             $("#vida-body").html("");
-            for(var curPage = 1; curPage < totalPages; curPage++)
+            // page number is 1-based
+            for(var curPage = 1; curPage <= totalPages; curPage++)
             {
                 var svg = vrvToolkit.renderPage(curPage);
                 $("#vida-body").append(svg);
@@ -64,19 +66,10 @@
         var vrvToolkit = new verovio.toolkit();
         var currentScale = 40;
         var currentPage = 0; //0-index as this is used to navigate $("svg")
-        var initialPageHeight = $("#vida-body").height() * (100 / currentScale);
-        var initialPageWidth = $("#vida-body").width() * (100 / currentScale);
+        var initialPageHeight = 100; // minimal value required by Verovio
+        var initialPageWidth = 100; // idem
         var totalPages;
         var dataGlobal;
-
-        vrvToolkit.setOptions(JSON.stringify({
-            pageHeight: initialPageHeight,
-            pageWidth: initialPageWidth,
-            inputFormat: 'mei',
-            scale: currentScale,
-            adjustPageHeight: 1,
-            ignoreLayout: 1
-        }));
 
         if(options.fileOnLoad && options.fileOnLoadIsURL)
         {
