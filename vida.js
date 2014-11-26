@@ -5,7 +5,7 @@
         var settings = {
             fileOnLoad: "",         //load a file in by default
             fileOnLoadIsURL: false, //whether said file is a URL or is already-loaded data
-            horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
+            horizontallyOriented: true,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
         };
 
         $.extend(settings, options);
@@ -57,6 +57,7 @@
                 var svg = vrvToolkit.renderPage(curPage);
                 $("#vida-body").append(svg);
             }
+            console.log("completed", settings.horizontallyOriented);
         }
 
         this.changePage = function(newPage)
@@ -67,10 +68,10 @@
 
         this.toggleOrientation = function()
         {
-            if(settings.horizontallyOriented === 1)
-                settings.horizontallyOriented = 0;
+            if(settings.horizontallyOriented === true)
+                settings.horizontallyOriented = false;
             else
-                settings.horizontallyOriented = 1;
+                settings.horizontallyOriented = true;
 
             refreshVerovio();
         };
