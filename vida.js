@@ -2,10 +2,15 @@
 {
     var vida = function(element, options)
     {
+        self = this;
         var settings = {
             fileOnLoad: "",         //load a file in by default
             fileOnLoadIsURL: false, //whether said file is a URL or is already-loaded data
             horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
+            initialPageWidth: 100,
+            initialPageHeight: 100,
+            musicData: "",
+            scale: 40
         };
 
         $.extend(settings, options);
@@ -29,8 +34,22 @@
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
             $("#vida-body").css('margin-left', options.parentSelector.width() * 0.025);
-            initialPageHeight = Math.max($("#vida-body").height() * (100 / currentScale), 100); // minimal value required by Verovio
-            initialPageWidth = Math.max($("#vida-body").width() * (100 / currentScale), 100); // idem     
+            settings.initialPageHeight = Math.max($("#vida-body").height() * (100 / settings.scale), 100); // minimal value required by Verovio
+            settings.initialPageWidth = Math.max($("#vida-body").width() * (100 / settings.scale), 100); // idem     
+            self.reloadPanel();
+        }
+
+        function reloadOptions()
+        {
+            vrvToolkit.setOptions(JSON.stringify({
+                pageHeight: settings.initialPageHeight,
+                pageWidth: settings.initialPageWidth,
+                inputFormat: 'mei',
+                scale: settings.scale,
+                adjustPageHeight: 1,
+                noLayout: settings.horizontallyOriented,
+                border: 50
+            }));
         }
 
         function refreshVerovio()
@@ -38,18 +57,10 @@
             $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
-            vrvToolkit.setOptions(JSON.stringify({
-                pageHeight: initialPageHeight,
-                pageWidth: initialPageWidth,
-                inputFormat: 'mei',
-                scale: currentScale,
-                adjustPageHeight: 1,
-                noLayout: settings.horizontallyOriented,
-                border: 50
-            }));
-            vrvToolkit.loadData( dataGlobal + "\n" );
+            reloadOptions();
+            vrvToolkit.loadData( settings.musicData + "\n" );
             totalPages = vrvToolkit.getPageCount();
-            //console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, " --adjust-page-height Guami_Canzona_24.mei");    
+            //console.log("verovio -f mei -h", settings.initialPageHeight, "-w", settings.initialPageWidth, "-b 0 -s", settings.scale, " --adjust-page-height Guami_Canzona_24.mei");    
             $("#vida-body").html("");
             // page number is 1-based
             for(var curPage = 1; curPage <= totalPages; curPage++)
@@ -57,12 +68,20 @@
                 var svg = vrvToolkit.renderPage(curPage);
                 $("#vida-body").append(svg);
             }
+            console.log(vrvToolkit);
+            console.log(settings.horizontallyOriented, settings.initialPageWidth, $("#vida-body").width());
         }
 
-        this.changePage = function(newPage)
+        this.changeMusic = function(newData)
         {
-            dataGlobal = newPage;
+            settings.musicData = newData;
             refreshVerovio();
+        };
+
+        this.reloadPanel = function()
+        {            
+            reloadOptions();
+            vrvToolkit.redoLayout();
         };
 
         this.toggleOrientation = function()
@@ -76,18 +95,16 @@
         };
 
         var vrvToolkit = new verovio.toolkit();
-        var currentScale = 40;
         var currentPage = 0; //0-index as this is used to navigate $("svg")
-        var initialPageHeight = Math.max($("#vida-body").height() * (100 / currentScale), 100); // minimal value required by Verovio
-        var initialPageWidth = Math.max($("#vida-body").width() * (100 / currentScale), 100); // idem
+        settings.initialPageHeight = Math.max($("#vida-body").height() * (100 / settings.scale), 100); // minimal value required by Verovio
+        settings.initialPageWidth = Math.max($("#vida-body").width() * (100 / settings.scale), 100); // idem
         var totalPages;
-        var dataGlobal;
 
         if(options.fileOnLoad && options.fileOnLoadIsURL)
         {
             $.get(options.fileOnLoad, function(data) 
             {
-                dataGlobal = data;
+                settings.musicData = data;
                 refreshVerovio();
                 resizeComponents();
                 $(".vida-prev-page").css('visibility', 'hidden');
@@ -95,7 +112,7 @@
         }
         else if(options.fileOnLoad && !options.fileOnLoadIsURL)
         {
-            dataGlobal = options.fileOnLoad;
+            settings.musicData = options.fileOnLoad;
         }
         else
         {
@@ -143,12 +160,12 @@
 
         $(".vida-zoom-in").on('click', function()
         {
-            if (currentScale <= 100)
+            if (settings.scale <= 100)
             {
-                currentScale += 10;
+                settings.scale += 10;
                 refreshVerovio();
             }
-            if(currentScale == 100)
+            if(settings.scale == 100)
             {
                 $(".vida-zoom-in").css('visibility', 'hidden');
             }
@@ -160,9 +177,9 @@
 
         $(".vida-zoom-out").on('click', function()
         {
-            if (currentScale > 10)
+            if (settings.scale > 10)
             {
-                currentScale -= 10;
+                settings.scale -= 10;
                 refreshVerovio();
             }
             if(currentPage == 10)
