@@ -5,6 +5,7 @@
         var settings = {
             fileOnLoad: "",         //load a file in by default
             fileOnLoadIsURL: false, //whether said file is a URL or is already-loaded data
+            horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
         };
 
         $.extend(settings, options);
@@ -27,7 +28,9 @@
             $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
-            $("#vida-body").css('margin-left', options.parentSelector.width() * 0.025);     
+            $("#vida-body").css('margin-left', options.parentSelector.width() * 0.025);
+            initialPageHeight = Math.max($("#vida-body").height() * (100 / currentScale), 100); // minimal value required by Verovio
+            initialPageWidth = Math.max($("#vida-body").width() * (100 / currentScale), 100); // idem     
         }
 
         function refreshVerovio()
@@ -41,13 +44,12 @@
                 inputFormat: 'mei',
                 scale: currentScale,
                 adjustPageHeight: 1,
-                noLayout: 1,
-                //ignoreLayout: 1,
+                noLayout: settings.horizontallyOriented,
                 border: 50
             }));
             vrvToolkit.loadData( dataGlobal + "\n" );
             totalPages = vrvToolkit.getPageCount();
-            console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, "--ignore-layout --adjust-page-height Guami_Canzona_24.mei");    
+            //console.log("verovio -f mei -h", initialPageHeight, "-w", initialPageWidth, "-b 0 -s", currentScale, " --adjust-page-height Guami_Canzona_24.mei");    
             $("#vida-body").html("");
             // page number is 1-based
             for(var curPage = 1; curPage <= totalPages; curPage++)
@@ -61,13 +63,23 @@
         {
             dataGlobal = newPage;
             refreshVerovio();
-        }
+        };
+
+        this.toggleOrientation = function()
+        {
+            if(settings.horizontallyOriented === 1)
+                settings.horizontallyOriented = 0;
+            else
+                settings.horizontallyOriented = 1;
+
+            refreshVerovio();
+        };
 
         var vrvToolkit = new verovio.toolkit();
         var currentScale = 40;
         var currentPage = 0; //0-index as this is used to navigate $("svg")
-        var initialPageHeight = 100; // minimal value required by Verovio
-        var initialPageWidth = 100; // idem
+        var initialPageHeight = Math.max($("#vida-body").height() * (100 / currentScale), 100); // minimal value required by Verovio
+        var initialPageWidth = Math.max($("#vida-body").width() * (100 / currentScale), 100); // idem
         var totalPages;
         var dataGlobal;
 
