@@ -13,10 +13,35 @@
             pageHeight: 100,
             pageTopOffsets: [],
             pageWidth: 100,
-            scale: 40
+            scale: 40,
+            totalPages: 0,
+            verovioWorker: new Worker("verovioWorker.js")
         };
 
         $.extend(settings, options);
+
+        settings.verovioWorker.onmessage = function(event){
+            switch (event.data[0]){
+                case "loadData":
+                    //event.data[1] is all the SVG data, event.data[2] is the total number of pages
+                    settings.totalPages = event.data[2];
+                    settings.currentPage = 0;
+                    $("#vida-body").html("");
+                    $("#vida-body").append(event.data[1]);            
+
+                    //create the array of pageTopOffsets after everything's loaded into the DOM
+                    var curSystem = $(".system").length;
+                    while(curSystem--)
+                    {
+                        settings.pageTopOffsets[curSystem] = $($(".system")[curSystem]).offset().top - $("#vida-body").offset().top - settings.border;
+                    }
+
+                    break;
+                default:
+                    console.log(event.data[1]);
+                    break;
+            }
+        };
 
         $(element).append(
             '<div class="vida-page-controls">' +
@@ -46,7 +71,7 @@
 
         function reloadOptions()
         {
-            vrvToolkit.setOptions(JSON.stringify({
+            settings.verovioWorker.postMessage(['setOptions', JSON.stringify({
                 pageHeight: settings.pageHeight,
                 pageWidth: settings.pageWidth,
                 inputFormat: 'mei',
@@ -54,7 +79,7 @@
                 adjustPageHeight: 1,
                 noLayout: settings.horizontallyOriented,
                 border: settings.border
-            }));
+            })]);
         }
 
         function refreshVerovio()
@@ -63,24 +88,7 @@
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
             reloadOptions();
-            vrvToolkit.loadData( settings.musicData + "\n" );
-            totalPages = vrvToolkit.getPageCount();
-            //console.log("verovio -f mei -h", settings.initialPageHeight, "-w", settings.initialPageWidth, "-b 0 -s", settings.scale, " --adjust-page-height Guami_Canzona_24.mei");    
-            
-            $("#vida-body").html("<div id='vida-svg-wrapper'></div>");
-            settings.currentPage = 0;
-            //systems are indexed by 0, page number is 1-based in the toolkit
-            for(var curPage = 1; curPage <= totalPages; curPage++)
-            {
-                var svg = vrvToolkit.renderPage(curPage);
-                $("#vida-svg-wrapper").append(svg);
-            }
-            
-            var curSystem = $(".system").length;
-            while(curSystem--)
-            {
-                settings.pageTopOffsets[curSystem] = $($(".system")[curSystem]).offset().top - $("#vida-body").offset().top - settings.border;
-            }
+            settings.verovioWorker.postMessage(['loadData', settings.musicData + "\n"]);  
         }
 
         this.changeMusic = function(newData)
@@ -114,11 +122,17 @@
 
         this.toggleGrid = function()
         {
-            settings.pageHeight = settings.pageHeight / 2;
+            /*settings.pageHeight = settings.pageHeight / 2;
             settings.pageWidth = settings.pageWidth / 2;
             settings.scale = settings.scale / 2;
             reloadOptions();
-            refreshVerovio();
+            refreshVerovio();*/
+            settings.verovioWorker.postMessage("Go!");
+
+            //$.extend(validationWorker, workerAttributes);
+
+
+            //validationWorker.postMessage(moduleIn);
         };
 
         var updateCurrentPage = function(e)
@@ -135,6 +149,7 @@
                     break;
                 }
             }
+            checkNavIcons();
         };
 
         var scrollToPage = function(pageNumber)
@@ -142,16 +157,35 @@
             $("#vida-body").unbind('scroll', updateCurrentPage);
             $("#vida-body").scrollTop(settings.pageTopOffsets[pageNumber] + 1);
             $("#vida-body").on('scroll', updateCurrentPage);
+            checkNavIcons();
+        };
+
+        //updates nav icon displays
+        var checkNavIcons = function()
+        {
+            if(settings.currentPage == totalPages)
+            {
+                $(".vida-next-page").css('visibility', 'hidden');
+            }
+            else if($(".vida-prev-page").css('visibility') == 'hidden')
+            {
+                $(".vida-prev-page").css('visibility', 'visible');
+            }            
+
+            if(settings.currentPage == 1)
+            {
+                $(".vida-prev-page").css('visibility', 'hidden');
+            }
+            else if($(".vida-next-page").css('visibility') == 'hidden')
+            {
+                $(".vida-next-page").css('visibility', 'visible');
+            }
         };
 
         var scrollToCurrentPage = function()
         {
             scrollToPage(settings.currentPage);
         };
-
-        var vrvToolkit = new verovio.toolkit();
-        var totalPages;
-        resizeComponents();
 
         if(options.fileOnLoad && options.fileOnLoadIsURL)
         {
@@ -183,15 +217,6 @@
                 settings.currentPage += 1;
                 scrollToCurrentPage();
             }
-
-            if(settings.currentPage == totalPages)
-            {
-                $(".vida-next-page").css('visibility', 'hidden');
-            }
-            else if($(".vida-prev-page").css('visibility') == 'hidden')
-            {
-                $(".vida-prev-page").css('visibility', 'visible');
-            }
         });
 
         $(".vida-prev-page").on('click', function()
@@ -200,15 +225,6 @@
             {
                 settings.currentPage -= 1;
                 scrollToCurrentPage();
-            }
-
-            if(settings.currentPage == 1)
-            {
-                $(".vida-prev-page").css('visibility', 'hidden');
-            }
-            else if($(".vida-next-page").css('visibility') == 'hidden')
-            {
-                $(".vida-next-page").css('visibility', 'visible');
             }
         });
 
@@ -249,6 +265,7 @@
         });
 
         $(window).on('resize', resizeComponents);
+        resizeComponents();
 
     };
 
