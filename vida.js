@@ -4,6 +4,7 @@
     {
         self = this;
         var settings = {
+            currentPage: 0,
             fileOnLoad: "",         //load a file in by default
             fileOnLoadIsURL: false, //whether said file is a URL or is already-loaded data
             horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
@@ -63,12 +64,14 @@
             vrvToolkit.loadData( settings.musicData + "\n" );
             totalPages = vrvToolkit.getPageCount();
             //console.log("verovio -f mei -h", settings.initialPageHeight, "-w", settings.initialPageWidth, "-b 0 -s", settings.scale, " --adjust-page-height Guami_Canzona_24.mei");    
-            $("#vida-body").html("");
-            // page number is 1-based
+            
+            $("#vida-body").html("<div id='vida-svg-wrapper'></div>");
+            settings.currentPage = 0;
+            //systems are indexed by 0, page number is 1-based in the toolkit
             for(var curPage = 1; curPage <= totalPages; curPage++)
             {
                 var svg = vrvToolkit.renderPage(curPage);
-                $("#vida-body").append("<div class='vida-svg-wrapper'>" + svg + "</div>");
+                $("#vida-svg-wrapper").append(svg);
             }
         }
 
@@ -110,8 +113,19 @@
             refreshVerovio();
         };
 
+        var scrollToPage = function(pageNumber)
+        {
+            var newSystemTop = $(".system")[pageNumber].getBoundingClientRect().top;
+            var bodyTop = $("#vida-svg-wrapper").offset().top;
+            $("#vida-body").scrollTop(newSystemTop - bodyTop);
+        };
+
+        var scrollToCurrentPage = function()
+        {
+            scrollToPage(settings.currentPage);
+        };
+
         var vrvToolkit = new verovio.toolkit();
-        var currentPage = 0; //0-index as this is used to navigate $("svg")
         var totalPages;
         resizeComponents();
 
@@ -140,15 +154,13 @@
 
         $(".vida-next-page").on('click', function()
         {
-            if (currentPage < totalPages)
+            if (settings.currentPage < totalPages)
             {
-                currentPage += 1;
-                var newSystemTop = $(".system")[currentPage].getBoundingClientRect().top;
-                var bodyTop = $(".vida-svg-wrapper").offset().top;
-                $("#vida-body").scrollTop(newSystemTop - bodyTop);
+                settings.currentPage += 1;
+                scrollToCurrentPage();
             }
 
-            if(currentPage == totalPages)
+            if(settings.currentPage == totalPages)
             {
                 $(".vida-next-page").css('visibility', 'hidden');
             }
@@ -160,15 +172,13 @@
 
         $(".vida-prev-page").on('click', function()
         {
-            if (currentPage > 1)
+            if (settings.currentPage > 1)
             {
-                currentPage -= 1;
-                var newSystemTop = $(".system")[currentPage].getBoundingClientRect().top;
-                var bodyTop = $(".vida-svg-wrapper").offset().top;
-                $("#vida-body").scrollTop(newSystemTop - bodyTop);
+                settings.currentPage -= 1;
+                scrollToCurrentPage();
             }
 
-            if(currentPage == 1)
+            if(settings.currentPage == 1)
             {
                 $(".vida-prev-page").css('visibility', 'hidden');
             }
@@ -202,7 +212,7 @@
                 settings.scale -= 10;
                 refreshVerovio();
             }
-            if(currentPage == 10)
+            if(settings.scale == 10)
             {
                 $(".vida-zoom-out").css('visibility', 'hidden');
             }
