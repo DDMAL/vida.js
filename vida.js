@@ -4,13 +4,15 @@
     {
         self = this;
         var settings = {
+            border: 50,
             currentPage: 0,
             fileOnLoad: "",         //load a file in by default
             fileOnLoadIsURL: false, //whether said file is a URL or is already-loaded data
             horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
             musicData: "",
-            pageWidth: 100,
             pageHeight: 100,
+            pageTopOffsets: [],
+            pageWidth: 100,
             scale: 40
         };
 
@@ -39,7 +41,7 @@
             $("#vida-body").css('margin-left', options.parentSelector.width() * 0.025);
             settings.pageHeight = Math.max($("#vida-body").height() * (100 / settings.scale), 100); // minimal value required by Verovio
             settings.pageWidth = Math.max($("#vida-body").width() * (100 / settings.scale), 100); // idem     
-            self.reloadPanel();
+            //self.reloadPanel();
         }
 
         function reloadOptions()
@@ -51,7 +53,7 @@
                 scale: settings.scale,
                 adjustPageHeight: 1,
                 noLayout: settings.horizontallyOriented,
-                border: 50
+                border: settings.border
             }));
         }
 
@@ -72,6 +74,12 @@
             {
                 var svg = vrvToolkit.renderPage(curPage);
                 $("#vida-svg-wrapper").append(svg);
+            }
+            
+            var curSystem = $(".system").length;
+            while(curSystem--)
+            {
+                settings.pageTopOffsets[curSystem] = $($(".system")[curSystem]).offset().top - $("#vida-body").offset().top - settings.border;
             }
         }
 
@@ -113,11 +121,27 @@
             refreshVerovio();
         };
 
+        var updateCurrentPage = function(e)
+        {
+            var curPage = settings.pageTopOffsets.length;
+            var curScroll = $(e.target).scrollTop();
+            while(curPage--)
+            {
+                var pageTop = settings.pageTopOffsets[curPage];
+                if(curScroll > pageTop)
+                {
+                    //there's a bit at the top
+                    settings.currentPage = curPage;
+                    break;
+                }
+            }
+        };
+
         var scrollToPage = function(pageNumber)
         {
-            var newSystemTop = $(".system")[pageNumber].getBoundingClientRect().top;
-            var bodyTop = $("#vida-svg-wrapper").offset().top;
-            $("#vida-body").scrollTop(newSystemTop - bodyTop);
+            $("#vida-body").unbind('scroll', updateCurrentPage);
+            $("#vida-body").scrollTop(settings.pageTopOffsets[pageNumber] + 1);
+            $("#vida-body").on('scroll', updateCurrentPage);
         };
 
         var scrollToCurrentPage = function()
@@ -187,6 +211,8 @@
                 $(".vida-next-page").css('visibility', 'visible');
             }
         });
+
+        $("#vida-body").on('scroll', updateCurrentPage);
 
         $(".vida-zoom-in").on('click', function()
         {
