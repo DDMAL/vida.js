@@ -62,13 +62,14 @@
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
             $("#vida-body").css('margin-left', options.parentSelector.width() * 0.025);
-            settings.pageHeight = Math.max($("#vida-body").height() * (100 / settings.scale), 100); // minimal value required by Verovio
-            settings.pageWidth = Math.max($("#vida-body").width() * (100 / settings.scale), 100); // idem     
+            reloadOptions();
             //self.reloadPanel();
         }
 
         function reloadOptions()
         {
+            settings.pageHeight = Math.max($("#vida-body").height() * (100 / settings.scale) - settings.border, 100); // minimal value required by Verovio
+            settings.pageWidth = Math.max($("#vida-body").width() * (100 / settings.scale) - settings.border, 100); // idem     
             settings.verovioWorker.postMessage(['setOptions', JSON.stringify({
                 pageHeight: settings.pageHeight,
                 pageWidth: settings.pageWidth,
