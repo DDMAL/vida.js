@@ -51,7 +51,7 @@
                     '<span class="vida-zoom-out"></span>' +
                 '</div>' +
                 //'<div class="vida-grid-toggle">Toggle to grid</div>' +
-                '<div class="vida-orientation-toggle">Toggle orientation</div>' +
+                //'<div class="vida-orientation-toggle">Toggle orientation</div>' +
                 '<div class="vida-next-page vida-direction-control"></div>' +
             '</div>' +
             '<div id="vida-body"></div>');
@@ -76,6 +76,7 @@
                 inputFormat: 'mei',
                 scale: settings.scale,
                 adjustPageHeight: 1,
+                ignoreLayout: 1,
                 noLayout: settings.horizontallyOriented,
                 border: settings.border
             })]);
@@ -158,7 +159,7 @@
         //updates nav icon displays
         var checkNavIcons = function()
         {
-            if(settings.currentPage == totalPages)
+            if(settings.currentPage === settings.totalPages)
             {
                 $(".vida-next-page").css('visibility', 'hidden');
             }
@@ -167,7 +168,7 @@
                 $(".vida-prev-page").css('visibility', 'visible');
             }            
 
-            if(settings.currentPage == 1)
+            if(settings.currentPage === 0)
             {
                 $(".vida-prev-page").css('visibility', 'hidden');
             }
@@ -207,7 +208,7 @@
 
         $(".vida-next-page").on('click', function()
         {
-            if (settings.currentPage < totalPages)
+            if (settings.currentPage < settings.totalPages)
             {
                 settings.currentPage += 1;
                 scrollToCurrentPage();
@@ -216,7 +217,7 @@
 
         $(".vida-prev-page").on('click', function()
         {
-            if (settings.currentPage > 1)
+            if (settings.currentPage > 0)
             {
                 settings.currentPage -= 1;
                 scrollToCurrentPage();
