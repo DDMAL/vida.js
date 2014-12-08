@@ -11,13 +11,12 @@ this.addEventListener('message', function(event){
         case "loadData":
             vrvToolkit.loadData(event.data[1]);
             var totalPages = vrvToolkit.getPageCount();
-            var svgText = "<div id='vida-svg-wrapper'>";
+            var svgText = "";
             
             for(var curPage = 1; curPage <= totalPages; curPage++)
             {
                 svgText += vrvToolkit.renderPage(curPage);
             }
-            svgText += "</div>";
 
             postMessage(["loadData", svgText, totalPages]);
             break;

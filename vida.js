@@ -27,7 +27,7 @@
                     settings.totalPages = event.data[2];
                     settings.currentPage = 0;
                     $("#vida-body").html("");
-                    $("#vida-body").append(event.data[1]);            
+                    $("#vida-body").append("<div id='vida-svg-wrapper'>" + event.data[1] + "</div>");            
 
                     //create the array of pageTopOffsets after everything's loaded into the DOM
                     var curSystem = $(".system").length;
@@ -135,15 +135,23 @@
         var updateCurrentPage = function(e)
         {
             var curPage = settings.pageTopOffsets.length;
-            var curScroll = $(e.target).scrollTop();
-            while(curPage--)
+            var curMid = $("#vida-body").scrollTop() + $("#vida-body").height() / 2;
+            
+            if($("#vida-svg-wrapper").height() == $("#vida-body").scrollTop() + $("#vida-body").height())
             {
-                var pageTop = settings.pageTopOffsets[curPage];
-                if(curScroll > pageTop)
+                settings.currentPage = settings.totalPages - 1;
+            }
+            else
+            {
+                while(curPage--)
                 {
-                    //there's a bit at the top
-                    settings.currentPage = curPage;
-                    break;
+                    var pageTop = settings.pageTopOffsets[curPage];
+                    if(curMid > pageTop)
+                    {
+                        //there's a bit at the top
+                        settings.currentPage = curPage;
+                        break;
+                    }
                 }
             }
             checkNavIcons();
@@ -160,22 +168,22 @@
         //updates nav icon displays
         var checkNavIcons = function()
         {
-            if(settings.currentPage === settings.totalPages)
+            if(settings.currentPage === settings.totalPages - 1)
             {
                 $(".vida-next-page").css('visibility', 'hidden');
             }
-            else if($(".vida-prev-page").css('visibility') == 'hidden')
+            else if($(".vida-next-page").css('visibility') == 'hidden')
             {
-                $(".vida-prev-page").css('visibility', 'visible');
+                $(".vida-next-page").css('visibility', 'visible');
             }            
 
             if(settings.currentPage === 0)
             {
                 $(".vida-prev-page").css('visibility', 'hidden');
             }
-            else if($(".vida-next-page").css('visibility') == 'hidden')
+            else if($(".vida-prev-page").css('visibility') == 'hidden')
             {
-                $(".vida-next-page").css('visibility', 'visible');
+                $(".vida-prev-page").css('visibility', 'visible');
             }
         };
 
@@ -209,7 +217,7 @@
 
         $(".vida-next-page").on('click', function()
         {
-            if (settings.currentPage < settings.totalPages)
+            if (settings.currentPage < settings.totalPages - 1)
             {
                 settings.currentPage += 1;
                 scrollToCurrentPage();
