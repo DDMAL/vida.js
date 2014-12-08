@@ -50,13 +50,11 @@
                     '<span class="vida-zoom-in"></span>' +
                     '<span class="vida-zoom-out"></span>' +
                 '</div>' +
-                '<div class="vida-grid-toggle">Toggle to grid</div>' +
+                //'<div class="vida-grid-toggle">Toggle to grid</div>' +
                 '<div class="vida-orientation-toggle">Toggle orientation</div>' +
                 '<div class="vida-next-page vida-direction-control"></div>' +
             '</div>' +
-            '<div id="vida-body">' +
-                'Loading...' +
-            '</div>');
+            '<div id="vida-body"></div>');
 
         function resizeComponents()
         {
@@ -84,6 +82,7 @@
 
         function refreshVerovio()
         {
+            $("#vida-body").prepend('<div class="vida-loading-popup">Loading...</div>');
             $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
@@ -127,12 +126,7 @@
             settings.scale = settings.scale / 2;
             reloadOptions();
             refreshVerovio();*/
-            settings.verovioWorker.postMessage("Go!");
-
-            //$.extend(validationWorker, workerAttributes);
-
-
-            //validationWorker.postMessage(moduleIn);
+            
         };
 
         var updateCurrentPage = function(e)
