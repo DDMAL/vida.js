@@ -77,6 +77,7 @@
                 scale: settings.scale,
                 adjustPageHeight: 1,
                 noLayout: settings.horizontallyOriented,
+                ignoreLayout: 1,
                 border: settings.border
             })]);
         }
