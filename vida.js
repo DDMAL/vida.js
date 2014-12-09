@@ -10,7 +10,6 @@
             fileOnLoadIsURL: false, //whether said file is a URL or is already-loaded data
             horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
             ignoreLayout: 1,
-            musicData: "",
             pageHeight: 100,
             pageTopOffsets: [],
             pageWidth: 100,
@@ -23,7 +22,7 @@
 
         settings.verovioWorker.onmessage = function(event){
             switch (event.data[0]){
-                case "loadData":
+                case "returnData":
                     //event.data[1] is all the SVG data, event.data[2] is the total number of pages
                     settings.totalPages = event.data[2];
                     settings.currentPage = 0;
@@ -36,6 +35,7 @@
                     {
                         settings.pageTopOffsets[curSystem] = $($(".system")[curSystem]).offset().top - $("#vida-body").offset().top - settings.border;
                     }
+                    checkNavIcons();
 
                     break;
                 default:
@@ -83,20 +83,26 @@
             })]);
         }
 
-        function refreshVerovio()
+        function refreshVerovio(newData)
         {
             $("#vida-body").prepend('<div class="vida-loading-popup">Loading...</div>');
             $("#vida-body").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-body").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-body").width(options.parentSelector.width() * 0.95);
             reloadOptions();
-            settings.verovioWorker.postMessage(['loadData', settings.musicData + "\n"]);  
+            if (newData)
+            {
+                settings.verovioWorker.postMessage(['loadData', newData + "\n"]);  
+            }
+            else
+            {
+                settings.verovioWorker.postMessage(['redoLayout']);
+            }
         }
 
         this.changeMusic = function(newData)
         {
-            settings.musicData = newData;
-            refreshVerovio();
+            refreshVerovio(newData);
         };
 
         this.reloadPanel = function()
@@ -196,15 +202,14 @@
         {
             $.get(options.fileOnLoad, function(data) 
             {
-                settings.musicData = data;
-                refreshVerovio();
+                refreshVerovio(data);
                 resizeComponents();
-                $(".vida-prev-page").css('visibility', 'hidden');
             });
         }
         else if(options.fileOnLoad && !options.fileOnLoadIsURL)
         {
-            settings.musicData = options.fileOnLoad;
+            refreshVerovio(options.fileOnLoad);
+            resizeComponents();
         }
         else
         {
