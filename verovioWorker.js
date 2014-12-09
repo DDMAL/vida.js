@@ -1,4 +1,4 @@
-importScripts("verovio-toolkit-new.js");
+importScripts("verovio-toolkit.js");
 var vrvToolkit = new verovio.toolkit();
 
 this.addEventListener('message', function(event){
