@@ -9,6 +9,7 @@
             fileOnLoad: "",         //load a file in by default
             fileOnLoadIsURL: false, //whether said file is a URL or is already-loaded data
             horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
+            ignoreLayout: 1,
             musicData: "",
             pageHeight: 100,
             pageTopOffsets: [],
@@ -51,7 +52,7 @@
                     '<span class="vida-zoom-out"></span>' +
                 '</div>' +
                 //'<div class="vida-grid-toggle">Toggle to grid</div>' +
-                //'<div class="vida-orientation-toggle">Toggle orientation</div>' +
+                '<div class="vida-orientation-toggle">Toggle orientation</div>' +
                 '<div class="vida-next-page vida-direction-control"></div>' +
             '</div>' +
             '<div id="vida-body"></div>');
@@ -76,9 +77,8 @@
                 inputFormat: 'mei',
                 scale: settings.scale,
                 adjustPageHeight: 1,
-                ignoreLayout: 1,
                 noLayout: settings.horizontallyOriented,
-                ignoreLayout: 1,
+                ignoreLayout: settings.ignoreLayout,
                 border: settings.border
             })]);
         }
@@ -269,7 +269,17 @@
             }
         });
 
-        $(window).on('resize', resizeComponents);
+        $(window).on('resize', function ()
+        {
+            resizeComponents();
+            // Cancel any previously-set resize timeouts
+            clearTimeout(settings.resizeTimer);
+
+            settings.resizeTimer = setTimeout(function ()
+            {
+                refreshVerovio();
+            }, 200);
+        });
         resizeComponents();
 
     };
