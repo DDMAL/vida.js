@@ -1,4 +1,4 @@
-importScripts("verovio-toolkit.js");
+importScripts("verovio-toolkit-light.js");
 var vrvToolkit = new verovio.toolkit();
 
 var returnData = function()
