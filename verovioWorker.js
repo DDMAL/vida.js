@@ -31,6 +31,17 @@ this.addEventListener('message', function(event){
             vrvToolkit.loadData(event.data[1]);
             returnData();
             break;
+
+        case "edit":
+            var res = vrvToolkit.edit(event.data[1]);
+            returnData();
+            break;
+
+        case "mei":
+            var mei = vrvToolkit.getMei();
+            postMessage(["mei", mei]);
+            break;
+
         default:
             postMessage(["Did not recognize that input."]);
             break;
