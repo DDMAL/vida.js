@@ -80,10 +80,6 @@ var vrvToolkit;
             $("#vida-svg-overlay").width(options.parentSelector.width());
             $("#vida-svg-overlay").height($("#vida-svg-wrapper").height());
             $("#vida-svg-overlay").offset($("#vida-svg-wrapper").offset());
-            // $("#vida-svg-wrapper").css('margin-left', options.parentSelector.width() * 0.025);
-            // $("#vida-svg-overlay").css('margin-left', options.parentSelector.width() * 0.025);
-            reloadOptions();
-            //self.reloadPanel();
         }
 
         function reloadOptions()
@@ -104,12 +100,14 @@ var vrvToolkit;
 
         function refreshVerovio(newData)
         {
-            settings.mei = newData;
+            if(newData) settings.mei = newData;
+            if(!settings.mei) return;
             $("#vida-svg-wrapper").prepend('<div class="vida-loading-popup">Loading...</div>');
             $("#vida-svg-wrapper").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-svg-wrapper").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-svg-wrapper").width(options.parentSelector.width() * 0.95);
             reloadOptions();
+
             if (newData)
             {
                 // $.get( "vida.js/Guami_Canzona_24.mei" , function( dataIn ) {
@@ -121,16 +119,17 @@ var vrvToolkit;
                 //     meiEditor.events.publish("VerovioUpdated");
                 // }); 
                 vrvToolkit.loadData(newData);
-                load_page(true);
-                checkNavIcons();
-                create_overlay( 0);   
-                    meiEditor.events.publish("VerovioUpdated");
-
             }
             else
             {
                 vrvToolkit.redoLayout();
             }
+
+            checkNavIcons();
+            localMei = vrvToolkit.getMEI();
+            mei.Events.publish("VerovioUpdated", [localMei]);
+            load_page( true );
+            $(".vida-loading-popup").remove();
         }
 
 
@@ -253,7 +252,7 @@ var vrvToolkit;
         function reload_page( id ) {
             vrvToolkit.redoLayout();
             localMei = vrvToolkit.getMEI();
-            meiEditor.events.publish('VerovioUpdated', [localMei]);
+            mei.Events.publish('VerovioUpdated', [localMei]);
             load_page( true );
         }
 
@@ -445,7 +444,7 @@ var vrvToolkit;
 
         $(window).on('resize', function ()
         {
-            resizeComponents();
+            //resizeComponents();
             // Cancel any previously-set resize timeouts
             clearTimeout(settings.resizeTimer);
 
