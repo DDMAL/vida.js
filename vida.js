@@ -13,13 +13,15 @@ var vrvToolkit;
             horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
             ignoreLayout: 1,
             mei: "",
+            pageData: [], //idx: {'topOffset': offset, 'id'': id}
             pageHeight: 100,
-            pageTopOffsets: [],
             pageWidth: 100,
             scale: 40,
             svg: "",
             totalPages: 0,
         };
+
+        var parser = new DOMParser();
 
         this.getSVG = function()
         {
@@ -130,7 +132,7 @@ var vrvToolkit;
             checkNavIcons();
             localMei = vrvToolkit.getMEI();
             mei.Events.publish("VerovioUpdated", [localMei]);
-            load_page( true );
+            load_document( true );
             $(".vida-loading-popup").remove();
         }
 
@@ -196,13 +198,13 @@ var vrvToolkit;
                 }
             }
 
-            var curPage = settings.pageTopOffsets.length;
+            var curPage = settings.pageData.length;
             var curMid = $("#vida-svg-wrapper").scrollTop() + $("#vida-svg-wrapper").height() / 2;
             
             while(curPage--)
             {
-                var pageTop = settings.pageTopOffsets[curPage];
-                if(curMid > pageTop)
+                var thisPage = settings.pageData[curPage];
+                if(curMid > thisPage.topOffset)
                 {
                     //there's a bit at the top
                     settings.currentPage = curPage;
@@ -260,20 +262,41 @@ var vrvToolkit;
             vrvToolkit.redoLayout();
             localMei = vrvToolkit.getMEI();
             mei.Events.publish('VerovioUpdated', [localMei]);
-            load_page( true );
+            load_page( settings.currentPage, true );
         }
 
-        function load_page( init_overlay ) 
+        function load_document( init_overlay )
         {
             settings.totalPages = vrvToolkit.getPageCount();
             $("#vida-svg-wrapper").html("");
             $("#vida-svg-overlay").html("");
-            for(var idx = 1; idx < settings.totalPages + 1; idx++)
+            for(var idx = 0; idx < settings.totalPages; idx++)
             {
-                $("#vida-svg-wrapper").append(vrvToolkit.renderPage(idx, ""));
-                settings.pageTopOffsets[idx] = $($(".system")[idx - 1]).offset().top - $("#vida-svg-wrapper").offset().top - settings.border;
-                //console.log(settings.pageTopOffsets[idx]);
+                $("#vida-svg-wrapper").append(vrvToolkit.renderPage(idx + 1, ""));
+                var thisID = $(".system")[idx].id;
+                settings.pageData[idx] = {
+                    'topOffset': $($(".system")[idx]).offset().top - $("#vida-svg-wrapper").offset().top - settings.border,
+                    'id': thisID
+                };
+                //console.log(settings.pageData[idx].topOffset);
             }
+            settings.svg = $("#vida-svg-wrapper").html();
+            if ( init_overlay ) {
+                create_overlay( 0 );   
+            }
+        }
+
+        function load_page( idx, init_overlay ) 
+        {
+            var temp_svg = vrvToolkit.renderPage(idx + 1, "");
+
+            var sysID = settings.pageData[settings.currentPage].id;
+            var thisSys = document.getElementById(sysID);
+            var parent = thisSys.parentNode;
+            var parsedDoc = parser.parseFromString(temp_svg, "text/xml");
+            //replace the fulL SVG
+            document.getElementById("vida-svg-wrapper").replaceChild(parsedDoc.firstChild, thisSys.parentNode.parentNode.parentNode);
+
             settings.svg = $("#vida-svg-wrapper").html();
             if ( init_overlay ) {
                 create_overlay( 0 );   
@@ -282,8 +305,21 @@ var vrvToolkit;
 
         var mouseDownListener = function(e)
         {
+            var idx;
             var t = e.target;
-            id = t.parentNode.attributes.id.value;
+            var id = t.parentNode.attributes.id.value;
+            var sysID = t.closest('.system').attributes.id.value;
+            for(idx = 0; idx < settings.pageData.length; idx++)
+            {
+                if(settings.pageData[idx].id == sysID)
+                {
+                    settings.currentPage = idx;
+                    break;
+                }
+            }
+
+            if (idx == settings.pageData.length) console.log("whoops");
+
             if (id != drag_id[0]) drag_id.unshift( id ); // make sure we don't add it twice
             //hide_id( "svg_output", drag_id[0] );
             highlight_id( "vida-svg-overlay", drag_id[0] );
@@ -305,12 +341,12 @@ var vrvToolkit;
             // we use this to distinct from click (selection)
             dragging = true;
             editorAction = JSON.stringify({ action: 'drag', param: { elementId: drag_id[0], 
-                            x: parseInt(drag_start.x),
-                            y: parseInt(scaledY) }   
+                x: parseInt(drag_start.x),
+                y: parseInt(scaledY) }   
             });
             // do something with the error...
             var res = vrvToolkit.edit( editorAction );
-            load_page( false );
+            load_page( settings.currentPage, false );
             highlight_id( "vida-svg-wrapper", drag_id[0] );  
         };
 
@@ -329,20 +365,34 @@ var vrvToolkit;
 
         function create_overlay( id ) {
             $("#vida-svg-overlay").html( $("#vida-svg-wrapper").html() );
-            overlay_svg = d3.select("#vida-svg-overlay").select("svg");
+            overlay_svg = $("#vida-svg-overlay > svg");
 
-            d3.select("#vida-svg-overlay").selectAll("g, path");//.style("stroke-opacity", "0.0").style("fill-opacity", "0.0");
-            d3.select("#vida-svg-overlay").selectAll("text").remove();
+            var gElems = document.querySelectorAll("#vida-svg-overlay * g");
+            var pathElems = document.querySelectorAll("#vida-svg-overlay * path");
+            var idx;
+
+            for (idx = 0; idx < gElems.length; idx++)
+            {
+                gElems[idx].style.strokeOpacity = 0.0;
+                gElems[idx].style.fillOpacity = 0.0;
+            }
+            for (idx = 0; idx < pathElems.length; idx++)
+            {
+                pathElems[idx].style.strokeOpacity = 0.0;
+                pathElems[idx].style.fillOpacity = 0.0;
+            }
+
+            $("#vida-svg-overlay * text").remove();
 
             $("#vida-svg-overlay * .note").on('mousedown', mouseDownListener);
-            d3.select("#vida-svg-overlay").select("defs").append("filter").attr("id", "selector");
+            $("#vida-svg-overlay * defs").append("filter").attr("id", "selector");
             resizeComponents();
         }
 
         var scrollToPage = function(pageNumber)
         {
             $("#vida-svg-wrapper").unbind('scroll', updateCurrentPage);
-            $("#vida-svg-wrapper").scrollTop(settings.pageTopOffsets[pageNumber] + 1);
+            $("#vida-svg-wrapper").scrollTop(settings.pageData[pageNumber].topOffset + 1);
             $("#vida-svg-wrapper").on('scroll', updateCurrentPage);
             checkNavIcons();
         };
