@@ -1,11 +1,13 @@
-#vida-body{
+.vida-svg-object{
     position:relative;
     width:95%;
     max-height:100%;
     max-width:100%;
     margin-left:2.5%;
-    overflow:auto;
+    overflow-y:auto;
+    overflow-x:visible;
 }
+
 svg{
     display: block;
     margin:0 auto;

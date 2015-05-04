@@ -69,17 +69,19 @@ var vrvToolkit;
                 '<div class="vida-orientation-toggle">Toggle orientation</div>' +
                 '<div class="vida-next-page vida-direction-control"></div>' +
             '</div>' +
-            '<div id="vida-svg-wrapper" style="z-index: 1; position:absolute;"></div>' +
-            '<div id="vida-svg-overlay" style="z-index: 1; position:absolute;"></div>');
+            '<div id="vida-svg-wrapper" class="vida-svg-object" style="z-index: 1; position:absolute;"></div>' +
+            '<div id="vida-svg-overlay" class="vida-svg-object" style="z-index: 1; position:absolute;"></div>');
 
         function resizeComponents()
         {
             $("#vida-svg-wrapper").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
+            $("#vida-svg-overlay").height($("#vida-svg-wrapper").height());
+
             $("#vida-svg-wrapper").offset({'top': $(".vida-page-controls").outerHeight()});
+            $("#vida-svg-overlay").offset($("#vida-svg-wrapper").offset());
+
             $("#vida-svg-wrapper").width(options.parentSelector.width());
             $("#vida-svg-overlay").width(options.parentSelector.width());
-            $("#vida-svg-overlay").height($("#vida-svg-wrapper").height());
-            $("#vida-svg-overlay").offset($("#vida-svg-wrapper").offset());
         }
 
         function reloadOptions()
@@ -174,34 +176,40 @@ var vrvToolkit;
         this.toggleGrid = function()
         {
             /*settings.pageHeight = settings.pageHeight / 2;
-            settings.pageWidth = settings.pageWidth / 2;
+            settings.pageWidth = settings.pageWidth / 2;() {
+            //     $('#top').scrollTop($(this).scrollTop());
+            // });
             settings.scale = settings.scale / 2;
             reloadOptions();
             refreshVerovio();*/
         };
 
         var updateCurrentPage = function(e)
-        {
+        {        
+            var objArr = $(".vida-svg-object");
+
+            for(var cnt = 0; cnt < objArr.length; cnt++)
+            {
+                if (objArr[cnt].id != e.target.id)
+                {
+                    $(objArr[cnt]).scrollTop($(e.target).scrollTop());
+                }
+            }
+
             var curPage = settings.pageTopOffsets.length;
             var curMid = $("#vida-svg-wrapper").scrollTop() + $("#vida-svg-wrapper").height() / 2;
             
-            if($("#vida-svg-wrapper").height() == $("#vida-svg-wrapper").scrollTop() + $("#vida-svg-wrapper").height())
+            while(curPage--)
             {
-                settings.currentPage = settings.totalPages - 1;
-            }
-            else
-            {
-                while(curPage--)
+                var pageTop = settings.pageTopOffsets[curPage];
+                if(curMid > pageTop)
                 {
-                    var pageTop = settings.pageTopOffsets[curPage];
-                    if(curMid > pageTop)
-                    {
-                        //there's a bit at the top
-                        settings.currentPage = curPage;
-                        break;
-                    }
+                    //there's a bit at the top
+                    settings.currentPage = curPage;
+                    break;
                 }
             }
+
             checkNavIcons();
         };
 
@@ -261,10 +269,10 @@ var vrvToolkit;
             $("#vida-svg-wrapper").html("");
             $("#vida-svg-overlay").html("");
             for(var idx = 1; idx < settings.totalPages + 1; idx++)
-            //for(var idx = 1; idx < 2; idx++)
             {
                 $("#vida-svg-wrapper").append(vrvToolkit.renderPage(idx, ""));
                 settings.pageTopOffsets[idx] = $($(".system")[idx - 1]).offset().top - $("#vida-svg-wrapper").offset().top - settings.border;
+                //console.log(settings.pageTopOffsets[idx]);
             }
             settings.svg = $("#vida-svg-wrapper").html();
             if ( init_overlay ) {
@@ -406,7 +414,7 @@ var vrvToolkit;
             }
         });
 
-        $("#vida-svg-wrapper").on('scroll', updateCurrentPage);
+        $(".vida-svg-object").on('scroll', updateCurrentPage);
 
         $(".vida-zoom-in").on('click', function()
         {
@@ -444,7 +452,6 @@ var vrvToolkit;
 
         $(window).on('resize', function ()
         {
-            //resizeComponents();
             // Cancel any previously-set resize timeouts
             clearTimeout(settings.resizeTimer);
 
@@ -453,6 +460,7 @@ var vrvToolkit;
                 refreshVerovio();
             }, 200);
         });
+
         resizeComponents();
 
     };
