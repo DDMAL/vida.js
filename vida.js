@@ -178,7 +178,6 @@ var vrvToolkit;
             settings.scale = settings.scale / 2;
             reloadOptions();
             refreshVerovio();*/
-            
         };
 
         var updateCurrentPage = function(e)
@@ -206,10 +205,10 @@ var vrvToolkit;
             checkNavIcons();
         };
 
-        var drag_id = new Array();
+        var drag_id = [];
         var drag_start;
         var dragging;
-        var last_note = ["", 0]
+        var last_note = ["", 0];
         var mute = false;
         var editorActive = false;
 
@@ -223,7 +222,7 @@ var vrvToolkit;
         }
 
         function editSet( attr, value ) {
-            if (drag_id.length == 0) {
+            if (drag_id.length === 0) {
                 return;
             }
             editorAction = JSON.stringify({ action: 'set', param: { elementId: drag_id[0],
@@ -231,11 +230,11 @@ var vrvToolkit;
             });
             var res = vrvToolkit.edit( editorAction );
             reload_page( drag_id[0] );  
-        };
+        }
 
         function editInsert( elementType ) {
             if ((drag_id.length < 2) || (drag_id[0] == drag_id[1]) ) {
-                console.log("Select two (different) notes!")
+                console.log("Select two (different) notes!");
                 return;
             }
             editorAction = JSON.stringify({ action: 'insert', param: { elementType: elementType,
@@ -243,11 +242,11 @@ var vrvToolkit;
             });
             var res = vrvToolkit.edit( editorAction );
             reload_page( drag_id[0] );  
-        };
+        }
 
         function reset_overlay( ) {
             $("#vida-svg-overlay").html("");
-        };
+        }
 
         function reload_page( id ) {
             vrvToolkit.redoLayout();
@@ -261,21 +260,22 @@ var vrvToolkit;
             settings.totalPages = vrvToolkit.getPageCount();
             $("#vida-svg-wrapper").html("");
             $("#vida-svg-overlay").html("");
-            // for(var idx = 1; idx < settings.totalPages + 1; idx++)
-            for(var idx = 1; idx < 2; idx++)
+            for(var idx = 1; idx < settings.totalPages + 1; idx++)
+            //for(var idx = 1; idx < 2; idx++)
             {
                 $("#vida-svg-wrapper").append(vrvToolkit.renderPage(idx, ""));
                 settings.pageTopOffsets[idx] = $($(".system")[idx - 1]).offset().top - $("#vida-svg-wrapper").offset().top - settings.border;
             }
+            settings.svg = $("#vida-svg-wrapper").html();
             if ( init_overlay ) {
                 create_overlay( 0 );   
             }
-        };
+        }
 
         var mouseDownListener = function(e)
         {
             var t = e.target;
-            id = t.parentNode.attributes["id"].value;
+            id = t.parentNode.attributes.id.value;
             if (id != drag_id[0]) drag_id.unshift( id ); // make sure we don't add it twice
             //hide_id( "svg_output", drag_id[0] );
             highlight_id( "vida-svg-overlay", drag_id[0] );
