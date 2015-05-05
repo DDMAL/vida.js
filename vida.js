@@ -11,7 +11,7 @@
             horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
             ignoreLayout: 1,
             mei: "",
-            systemData: [], //idx: {'topOffset': offset, 'id'': id}
+            systemData: {}, //systemID: {'topOffset': offset, 'pageIdx'': pageidx}
             pageHeight: 100,
             pageWidth: 100,
             scale: 40,
@@ -42,20 +42,24 @@
         settings.verovioWorker.onmessage = function(event){
             switch (event.data[0]){
                 case "meconium":
+                    $("#vida-svg-overlay").html(""); //clear this so all its systems disappear
                     $("#vida-svg-wrapper").html(event.data[1]);
                     settings.svg = event.data[1];
 
                     var vidaOffset = $("#vida-svg-wrapper").offset().top;
-                    var systems = document.getElementsByClassName("system");
+                    var pages = document.getElementById("vida-svg-wrapper").children;
 
-                    for(var idx = 0; idx < systems.length; idx++)
+                    for(var pIdx = 0; pIdx < pages.length; pIdx++)
                     {
-                        var thisID = systems[idx].id;
-                        settings.systemData[idx] = {
-                            'topOffset': systems[idx].getBoundingClientRect().top - vidaOffset - settings.border,
-                            'id': thisID
-                        };
-                        //console.log(settings.systemData[idx].topOffset);
+                        var systems = pages[pIdx].querySelectorAll('g[class=system]');
+                        for(var sIdx = 0; sIdx < systems.length; sIdx++) 
+                        {
+                            settings.systemData[systems[sIdx].id] = {
+                                'topOffset': systems[sIdx].getBoundingClientRect().top - vidaOffset - settings.border,
+                                'pageIdx': pIdx
+                            };
+                            //console.log(settings.systemData[idx].topOffset);    
+                        }
                     }
 
                     create_overlay( 0 );  
@@ -70,17 +74,13 @@
                     var this_page = event.data[1];
                     var this_svg = event.data[2];
 
-                    var sysID = settings.systemData[this_page].id;
-                    var thisSys = document.getElementById(sysID);
-                    var parent = thisSys.parentNode;
                     var parsedDoc = parser.parseFromString(this_svg, "text/xml");
-                    //replace the fulL SVG
-                    document.getElementById("vida-svg-wrapper").replaceChild(parsedDoc.firstChild, thisSys.parentNode.parentNode.parentNode);
+                    var thisChild = document.getElementById("vida-svg-wrapper").children[this_page];
+                    document.getElementById("vida-svg-wrapper").replaceChild(parsedDoc.firstChild, thisChild);
 
                     settings.svg = $("#vida-svg-wrapper").html();
 
                     if(event.data[3]) create_overlay( 0 );
-
                     break;
 
                 case "returnPageCount":
@@ -144,7 +144,6 @@
         {
             if(newData) settings.mei = newData;
             if(!settings.mei) return;
-            console.log("called with data");
             $("#vida-svg-wrapper").prepend('<div class="vida-loading-popup">Loading...</div>');
             $("#vida-svg-wrapper").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-svg-wrapper").offset({'top': $(".vida-page-controls").outerHeight()});
@@ -162,7 +161,6 @@
 
             checkNavIcons();
             reloadMEI();
-//            load_document( true );
         }
 
         this.changeMusic = function(newData)
@@ -276,52 +274,11 @@
             reload_page( drag_id[0] );  
         }
 
-        function reset_overlay( ) {
-            $("#vida-svg-overlay").html("");
-        }
-
         function reload_page( id ) {
             //settings.verovioWorker.postMessage(['redoLayout']);
             reloadMEI();
             settings.verovioWorker.postMessage(['renderPage', settings.currentPage, true]);
         }
-
-        function load_document( init_overlay )
-        {
-            $("#vida-svg-wrapper").html("");
-            $("#vida-svg-overlay").html("");
-            for(var idx = 0; idx < settings.totalPages; idx++)
-            {
-                $("#vida-svg-wrapper").append(vrvToolkit.renderPage(idx + 1, ""));
-                var thisID = $(".system")[idx].id;
-                settings.systemData[idx] = {
-                    'topOffset': $($(".system")[idx]).offset().top - $("#vida-svg-wrapper").offset().top - settings.border,
-                    'id': thisID
-                };
-                //console.log(settings.systemData[idx].topOffset);
-            }
-            settings.svg = $("#vida-svg-wrapper").html();
-            if ( init_overlay ) {
-                create_overlay( 0 );   
-            }
-        }
-
-        // function load_page( idx, init_overlay ) 
-        // {
-        //     var temp_svg = vrvToolkit.renderPage(idx + 1, "");
-
-        //     var sysID = settings.systemData[settings.currentPage].id;
-        //     var thisSys = document.getElementById(sysID);
-        //     var parent = thisSys.parentNode;
-        //     var parsedDoc = parser.parseFromString(temp_svg, "text/xml");
-        //     //replace the fulL SVG
-        //     document.getElementById("vida-svg-wrapper").replaceChild(parsedDoc.firstChild, thisSys.parentNode.parentNode.parentNode);
-
-        //     settings.svg = $("#vida-svg-wrapper").html();
-        //     if ( init_overlay ) {
-        //         create_overlay( 0 );   
-        //     }
-        // }
 
         var mouseDownListener = function(e)
         {
@@ -329,11 +286,12 @@
             var t = e.target;
             var id = t.parentNode.attributes.id.value;
             var sysID = t.closest('.system').attributes.id.value;
+
             for(idx = 0; idx < settings.systemData.length; idx++)
             {
-                if(settings.systemData[idx].id == sysID)
+                if(settings.systemData[idx].systemID == sysID)
                 {
-                    settings.currentPage = idx;
+                    settings.currentPage = settings.systemData[idx].pageIdx;
                     break;
                 }
             }
@@ -367,7 +325,6 @@
             // do something with the error...
             //var res = 
             settings.verovioWorker.postMessage(['edit', editorAction, settings.currentPage, false]); 
-            //load_page( settings.currentPage, false );
             highlight_id( "vida-svg-wrapper", drag_id[0] );  
         };
 
@@ -377,7 +334,6 @@
             $(document).unbind("mouseup", mouseUpListener);
             if (dragging) {
                 delete this.__origin__; 
-                reset_overlay();
                 reload_page( drag_id[0] );
                 dragging = false; 
                 drag_id.length = 0;
