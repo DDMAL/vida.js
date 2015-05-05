@@ -26,15 +26,15 @@ var returnDoc = function()
     
     for(var curPage = 0; curPage < totalPages; curPage++)
     {
-        returnPage(curPage);
+        returnPage(curPage, "", true);
     }
 };
 
 //Everything coming in is 0-indexed, everything going out must be 0-indexed
-var returnPage = function(pageIndex, options)
+var returnPage = function(pageIndex, options, init_overlay)
 {
     var rendered = vrvToolkit.renderPage(pageIndex + 1, options);
-    postMessage(["returnPage", pageIndex, rendered]);
+    postMessage(["returnPage", pageIndex, rendered, init_overlay || false]);
 };
 
 this.addEventListener('message', function(event){
@@ -46,21 +46,22 @@ this.addEventListener('message', function(event){
 
         case "redoLayout":
             vrvToolkit.redoLayout();
-            returnDoc();
+            //more to do?
             break;
 
         case "renderPage":
-            returnPage(event.data[1], event.data[2]);
+            returnPage(event.data[1], event.data[2], true);
             break;
 
         case "loadData":
             initialLoad(event.data[1]);
-            returnDoc();
             break;
 
         case "edit":
+            //event.data{1: editorAction, 2: 0-indexed page index, 3: init overlay (to be passed back)}
             var res = vrvToolkit.edit(event.data[1]);
-            returnDoc();
+            var rendered = vrvToolkit.renderPage(event.data[2] + 1, "");
+            postMessage(["returnPage", event.data[2], rendered, event.data[3]]);
             break;
 
         case "mei":

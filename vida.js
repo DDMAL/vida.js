@@ -63,26 +63,10 @@
                     break;
 
                 case "renderedPage":
-                    console.log("Rendered page", event.data[1], "internally.");
+                    //console.log("Rendered page", event.data[1], "internally.");
                     break;
 
-
                 case "returnPage":
-                    console.log("a page?");
-                    //     //TODO
-                    // //event.data[1] is all the SVG data, event.data[2] is the total number of pages
-                    // settings.totalPages = event.data[2];
-                    // settings.currentPage = 0;
-                    // $("#vida-body").html("");
-                    // $("#vida-body").append("<div id='vida-svg-wrapper'>" + event.data[1] + "</div>");            
-
-                    // //create the array of pageTopOffsets after everything's loaded into the DOM
-                    // var curSystem = $(".system").length;
-                    // while(curSystem--)
-                    // {
-                    //     settings.pageTopOffsets[curSystem] = $($(".system")[curSystem]).offset().top - $("#vida-body").offset().top - settings.border;
-                    // }
-                    // checkNavIcons();
                     var this_page = event.data[1];
                     var this_svg = event.data[2];
 
@@ -94,7 +78,8 @@
                     document.getElementById("vida-svg-wrapper").replaceChild(parsedDoc.firstChild, thisSys.parentNode.parentNode.parentNode);
 
                     settings.svg = $("#vida-svg-wrapper").html();
-                    create_overlay( 0 );
+
+                    if(event.data[3]) create_overlay( 0 );
 
                     break;
 
@@ -108,7 +93,7 @@
                     break;
 
                 default:
-                    console.log(event.data[1]);
+                    console.log(event.data[0], event.data[1]);
                     break;
             }
         };
@@ -209,7 +194,7 @@
 
         this.edit = function(editorAction)
         {
-            verovioWorker.postMessage(['edit', editorAction]);
+            settings.verovioWorker.postMessage(['edit', editorAction]);
         };
 
         this.toggleGrid = function()
@@ -296,9 +281,9 @@
         }
 
         function reload_page( id ) {
-            verovioWorker.postMessage(['redoLayout']);
-            this.getMEI();
-            //load_page( settings.currentPage, true );
+            //settings.verovioWorker.postMessage(['redoLayout']);
+            reloadMEI();
+            settings.verovioWorker.postMessage(['renderPage', settings.currentPage, true]);
         }
 
         function load_document( init_overlay )
@@ -381,7 +366,7 @@
             });
             // do something with the error...
             //var res = 
-            verovioWorker.postMessage(['edit', editorAction]);
+            settings.verovioWorker.postMessage(['edit', editorAction, settings.currentPage, false]); 
             //load_page( settings.currentPage, false );
             highlight_id( "vida-svg-wrapper", drag_id[0] );  
         };
