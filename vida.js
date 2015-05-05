@@ -218,6 +218,7 @@
                 }
             }
 
+            console.log("Fix me, seymour");
             var curPage = settings.systemData.length;
             var curMid = $("#vida-svg-wrapper").scrollTop() + $("#vida-svg-wrapper").height() / 2;
             
@@ -286,12 +287,15 @@
             var t = e.target;
             var id = t.parentNode.attributes.id.value;
             var sysID = t.closest('.system').attributes.id.value;
+            var sysIDs = Object.keys(settings.systemData);
 
-            for(idx = 0; idx < settings.systemData.length; idx++)
+
+            for(idx = 0; idx < sysIDs.length; idx++)
             {
-                if(settings.systemData[idx].systemID == sysID)
+                var curID = sysIDs[idx];
+                if(curID == sysID)
                 {
-                    settings.currentPage = settings.systemData[idx].pageIdx;
+                    settings.currentPage = settings.systemData[curID].pageIdx;
                     break;
                 }
             }
