@@ -42,23 +42,24 @@
         settings.verovioWorker.onmessage = function(event){
             switch (event.data[0]){
                 case "meconium":
-                    var svg_text = event.data[1];
-                    $("#vida-svg-wrapper").html(svg_text);
-                    $("#vida-svg-overlay").html(svg_text);
-                    settings.svg = svg_text;
+                    $("#vida-svg-wrapper").html(event.data[1]);
+                    settings.svg = event.data[1];
 
-                    for(var idx = 0; idx < $(".system").length; idx++)
+                    var vidaOffset = $("#vida-svg-wrapper").offset().top;
+                    var systems = document.getElementsByClassName("system");
+
+                    for(var idx = 0; idx < systems.length; idx++)
                     {
-                        var thisID = $(".system")[idx].id;
+                        var thisID = systems[idx].id;
                         settings.systemData[idx] = {
-                            'topOffset': $($(".system")[idx]).offset().top - $("#vida-svg-wrapper").offset().top - settings.border,
+                            'topOffset': systems[idx].getBoundingClientRect().top - vidaOffset - settings.border,
                             'id': thisID
                         };
                         //console.log(settings.systemData[idx].topOffset);
                     }
+
                     create_overlay( 0 );  
                     $(".vida-loading-popup").remove();
-
                     break;
 
                 case "renderedPage":
@@ -67,6 +68,7 @@
 
 
                 case "returnPage":
+                    console.log("a page?");
                     //     //TODO
                     // //event.data[1] is all the SVG data, event.data[2] is the total number of pages
                     // settings.totalPages = event.data[2];
@@ -81,8 +83,8 @@
                     //     settings.pageTopOffsets[curSystem] = $($(".system")[curSystem]).offset().top - $("#vida-body").offset().top - settings.border;
                     // }
                     // checkNavIcons();
-                    var this_svg = event.data[1];
-                    var this_page = event.data[2];
+                    var this_page = event.data[1];
+                    var this_svg = event.data[2];
 
                     var sysID = settings.systemData[this_page].id;
                     var thisSys = document.getElementById(sysID);
@@ -102,8 +104,7 @@
 
                 case "mei":
                     settings.mei = event.data[1];
-                    mei.Events.publish("VerovioUpdated", [localMei]);
-                    refreshVerovio();
+                    mei.Events.publish("VerovioUpdated", [settings.mei]);
                     break;
 
                 default:
@@ -158,6 +159,7 @@
         {
             if(newData) settings.mei = newData;
             if(!settings.mei) return;
+            console.log("called with data");
             $("#vida-svg-wrapper").prepend('<div class="vida-loading-popup">Loading...</div>');
             $("#vida-svg-wrapper").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-svg-wrapper").offset({'top': $(".vida-page-controls").outerHeight()});
@@ -296,7 +298,7 @@
         function reload_page( id ) {
             verovioWorker.postMessage(['redoLayout']);
             this.getMEI();
-            load_page( settings.currentPage, true );
+            //load_page( settings.currentPage, true );
         }
 
         function load_document( init_overlay )
@@ -380,7 +382,7 @@
             // do something with the error...
             //var res = 
             verovioWorker.postMessage(['edit', editorAction]);
-            load_page( settings.currentPage, false );
+            //load_page( settings.currentPage, false );
             highlight_id( "vida-svg-wrapper", drag_id[0] );  
         };
 
