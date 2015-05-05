@@ -59,8 +59,7 @@
                             settings.systemData[systems[sIdx].id] = {
                                 'topOffset': systems[sIdx].getBoundingClientRect().top - vidaOffset - settings.border,
                                 'pageIdx': pIdx
-                            };
-                            //console.log(settings.systemData[idx].topOffset);    
+                            };   
                         }
                     }
 
@@ -83,6 +82,7 @@
                     settings.svg = $("#vida-svg-wrapper").html();
 
                     if(event.data[3]) create_overlay( 0 );
+                    $(".vida-loading-popup").remove();
                     break;
 
                 case "returnPageCount":
@@ -95,7 +95,7 @@
                     break;
 
                 default:
-                    console.log(event.data[0], event.data[1]);
+                    console.log("Message from Verovio of type", event.data[0]+":", event.data[1]);
                     break;
             }
         };
@@ -126,6 +126,15 @@
             $("#vida-svg-overlay").width(options.parentSelector.width());
         }
 
+        function initPopup(text)
+        {
+            settings.parentSelector.prepend('<div class="vida-loading-popup">' + text + '</div>');
+            $(".vida-loading-popup").offset({
+                'top': settings.parentSelector.offset().top + 50,
+                'left': settings.parentSelector.offset().left + 30
+            });
+        }
+
         function reloadOptions()
         {
             settings.pageHeight = Math.max($("#vida-svg-wrapper").height() * (100 / settings.scale) - settings.border, 100); // minimal value required by Verovio
@@ -146,7 +155,8 @@
         {
             if(newData) settings.mei = newData;
             if(!settings.mei) return;
-            $("#vida-svg-wrapper").prepend('<div class="vida-loading-popup">Loading...</div>');
+            $("#loadText").remove();
+            initPopup("Loading...");
             $("#vida-svg-wrapper").height(options.parentSelector.height() - $(".vida-page-controls").outerHeight());
             $("#vida-svg-wrapper").offset({'top': $(".vida-page-controls").outerHeight()});
             $("#vida-svg-wrapper").width(options.parentSelector.width() * 0.95);
@@ -163,6 +173,13 @@
 
             checkNavIcons();
             reloadMEI();
+        }
+
+        function reloadPage(pageIdx, initOverlay)
+        {
+            initPopup("Reloading...");
+            reloadMEI();
+            settings.verovioWorker.postMessage(['renderPage', pageIdx, initOverlay]);
         }
 
         this.changeMusic = function(newData)
@@ -245,35 +262,6 @@
                 });
         }
 
-        function editSet( attr, value ) {
-            if (drag_id.length === 0) {
-                return;
-            }
-            editorAction = JSON.stringify({ action: 'set', param: { elementId: drag_id[0],
-                attrType: attr, attrValue: value }   
-            });
-            var res = this.edit( editorAction );
-            reload_page( drag_id[0] );  
-        }
-
-        function editInsert( elementType ) {
-            if ((drag_id.length < 2) || (drag_id[0] == drag_id[1]) ) {
-                console.log("Select two (different) notes!");
-                return;
-            }
-            editorAction = JSON.stringify({ action: 'insert', param: { elementType: elementType,
-                startid: drag_id[1], endid: drag_id[0] }   
-            });
-            var res = this.edit( editorAction );
-            reload_page( drag_id[0] );  
-        }
-
-        function reload_page( id ) {
-            //settings.verovioWorker.postMessage(['redoLayout']);
-            reloadMEI();
-            settings.verovioWorker.postMessage(['renderPage', settings.currentPage, true]);
-        }
-
         var mouseDownListener = function(e)
         {
             var idx;
@@ -292,8 +280,6 @@
                     break;
                 }
             }
-
-            if (idx == settings.systemData.length) console.log("whoops");
 
             if (id != drag_id[0]) drag_id.unshift( id ); // make sure we don't add it twice
             //hide_id( "svg_output", drag_id[0] );
@@ -331,7 +317,7 @@
             $(document).unbind("mouseup", mouseUpListener);
             if (dragging) {
                 delete this.__origin__; 
-                reload_page( drag_id[0] );
+                reloadPage( settings.currentPage, true );
                 dragging = false; 
                 drag_id.length = 0;
             }
@@ -411,7 +397,7 @@
         }
         else
         {
-            $("#vida-svg-wrapper").html("<center><h4>Load a file into Verovio!</h4></center>");
+            $("#vida-svg-wrapper").html("<h4 id='loadText'>Load a file into Verovio!</h4>");
         }
 
         $(".vida-orientation-toggle").on('click', this.toggleOrientation);
