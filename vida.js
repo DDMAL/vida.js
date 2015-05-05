@@ -323,6 +323,7 @@
             dragging = false;
             $(document).on("mousemove", mouseMoveListener);
             $(document).on("mouseup", mouseUpListener);
+            mei.Events.publish("HighlightSelected", [id]);
         };
 
         var mouseMoveListener = function(e)
