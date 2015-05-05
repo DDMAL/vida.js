@@ -230,8 +230,8 @@
             {
                 if(div == highlighted_cache[idx][0] && id == highlighted_cache[idx][1]) return;
             }
-            
             highlighted_cache.push([div, id]);
+            reapplyHighlights();
         }
 
         function reapplyHighlights()
@@ -289,7 +289,6 @@
             var sysID = t.closest('.system').attributes.id.value;
             var sysIDs = Object.keys(settings.systemData);
 
-
             for(idx = 0; idx < sysIDs.length; idx++)
             {
                 var curID = sysIDs[idx];
@@ -305,7 +304,7 @@
             resetHighlights();
             newHighlight( "vida-svg-overlay", drag_id[0] );
 
-            var viewBoxSVG = $(e.target).closest("svg");
+            var viewBoxSVG = $(t).closest("svg");
             var parentSVG = viewBoxSVG.parent().closest("svg")[0];
             var actualSizeArr = viewBoxSVG[0].getAttribute("viewBox").split(" ");
             var actualHeight = parseInt(actualSizeArr[2]);
@@ -324,27 +323,28 @@
             dragging = false;
             $(document).on("mousemove", mouseMoveListener);
             $(document).on("mouseup", mouseUpListener);
-            reapplyHighlights();
         };
 
         var mouseMoveListener = function(e)
         {
             var scaledY = drag_start.svgY + (e.pageY - drag_start.initY) * drag_start.pixPerPix;
             e.target.parentNode.setAttribute("transform", "translate(" + [0 , scaledY] + ")");
+
             $(e.target).parent().css({
                 "fill-opacity": "0.0",
                 "stroke-opacity": "0.0"
             });
+
             // we use this to distinct from click (selection)
             dragging = true;
             editorAction = JSON.stringify({ action: 'drag', param: { elementId: drag_id[0], 
                 x: parseInt(drag_start.x),
                 y: parseInt(scaledY) }   
             });
-            // do something with the error...
+
             settings.verovioWorker.postMessage(['edit', editorAction, settings.clickedPage, false]); 
-            newHighlight( "vida-svg-wrapper", drag_id[0] );  
-            reapplyHighlights();
+            removeHighlight( "vida-svg-overlay", drag_id[0] );  
+            newHighlight( "vida-svg-wrapper", drag_id[0] ); 
             e.preventDefault();
         };
 
