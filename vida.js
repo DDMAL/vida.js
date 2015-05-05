@@ -22,6 +22,14 @@
             verovioWorker: new Worker("vida.js/verovioWorker.js")
         };
 
+        var drag_id = [];
+        var drag_start;
+        var dragging;
+        var last_note = ["", 0];
+        var mute = false;
+        var editorActive = false;
+        var highlighted_cache = [];
+
         var parser = new DOMParser();
 
         this.getSVG = function()
@@ -84,6 +92,7 @@
 
                     if(event.data[3]) create_overlay( 0 );
                     $(".vida-loading-popup").remove();
+                    reapplyHighlights();
                     break;
 
                 case "returnPageCount":
@@ -215,31 +224,61 @@
             settings.verovioWorker.postMessage(['edit', editorAction]);
         };
 
-        this.toggleGrid = function()
+        function newHighlight(div, id) 
         {
-            /*settings.pageHeight = settings.pageHeight / 2;
-            settings.pageWidth = settings.pageWidth / 2;() {
-            //     $('#top').scrollTop($(this).scrollTop());
-            // });
-            settings.scale = settings.scale / 2;
-            reloadOptions();
-            refreshVerovio();*/
-        };
+            for(var idx = 0; idx < highlighted_cache.length; idx++)
+            {
+                if(div == highlighted_cache[idx][0] && id == highlighted_cache[idx][1]) return;
+            }
+            
+            highlighted_cache.push([div, id]);
+        }
 
-        var drag_id = [];
-        var drag_start;
-        var dragging;
-        var last_note = ["", 0];
-        var mute = false;
-        var editorActive = false;
-
-        function highlight_id( div, id ) {
-            $("#" + div + " * #" + id ).css({
-                "fill": "#ff0000",
-                "stroke": "#ff0000",
-                "fill-opacity": "1.0",
-                "stroke-opacity": "1.0"
+        function reapplyHighlights()
+        {
+            for(var idx = 0; idx < highlighted_cache.length; idx++)
+            {
+                $("#" + highlighted_cache[idx][0] + " * #" + highlighted_cache[idx][1] ).css({
+                    "fill": "#ff0000",
+                    "stroke": "#ff0000",
+                    "fill-opacity": "1.0",
+                    "stroke-opacity": "1.0"
                 });
+            }
+        }
+
+        function removeHighlight(div, id)
+        {
+            for(var idx = 0; idx < highlighted_cache.length; idx++)
+            {
+                if(div == highlighted_cache[idx][0] && id == highlighted_cache[idx][1])
+                {
+                    var removed = highlighted_cache.splice(idx, 1);
+                    var css = removed[0] == "vida-svg-wrapper" ?
+                        {
+                            "fill": "#000000",
+                            "stroke": "#000000",
+                            "fill-opacity": "1.0",
+                            "stroke-opacity": "1.0"
+                        } :
+                        {
+                            "fill": "#000000",
+                            "stroke": "#000000",
+                            "fill-opacity": "0.0",
+                            "stroke-opacity": "0.0"
+                        };
+                    $("#" + removed[0] + " * #" + removed[1] ).css(css);
+                    return;
+                }
+            }
+        }
+
+        function resetHighlights()
+        {
+            while(highlighted_cache[0])
+            {
+                removeHighlight(highlighted_cache[0][0], highlighted_cache[0][1]);
+            }
         }
 
         var mouseDownListener = function(e)
@@ -263,7 +302,8 @@
 
             if (id != drag_id[0]) drag_id.unshift( id ); // make sure we don't add it twice
             //hide_id( "svg_output", drag_id[0] );
-            highlight_id( "vida-svg-overlay", drag_id[0] );
+            resetHighlights();
+            newHighlight( "vida-svg-overlay", drag_id[0] );
 
             var viewBoxSVG = $(e.target).closest("svg");
             var parentSVG = viewBoxSVG.parent().closest("svg")[0];
@@ -284,6 +324,7 @@
             dragging = false;
             $(document).on("mousemove", mouseMoveListener);
             $(document).on("mouseup", mouseUpListener);
+            reapplyHighlights();
         };
 
         var mouseMoveListener = function(e)
@@ -302,7 +343,9 @@
             });
             // do something with the error...
             settings.verovioWorker.postMessage(['edit', editorAction, settings.clickedPage, false]); 
-            highlight_id( "vida-svg-wrapper", drag_id[0] );  
+            newHighlight( "vida-svg-wrapper", drag_id[0] );  
+            reapplyHighlights();
+            e.preventDefault();
         };
 
         var mouseUpListener = function()
@@ -310,6 +353,7 @@
             $(document).unbind("mousemove", mouseMoveListener);
             $(document).unbind("mouseup", mouseUpListener);
             if (dragging) {
+                removeHighlight("vida-svg-overlay", drag_id[0]);
                 delete this.__origin__; 
                 reloadPage( settings.clickedPage, true );
                 dragging = false; 
