@@ -11,11 +11,12 @@
             horizontallyOriented: 0,//1 or 0 (NOT boolean, but mimicing it) for whether the page will display horizontally or vertically
             ignoreLayout: 1,
             mei: "",
-            systemData: {}, //systemID: {'topOffset': offset, 'pageIdx'': pageidx}
             pageHeight: 100,
+            pageTops: {},
             pageWidth: 100,
             scale: 40,
             svg: "",
+            systemData: {}, //systemID: {'topOffset': offset, 'pageIdx'': pageidx}
             totalPages: 0,
             verovioWorker: new Worker("vida.js/verovioWorker.js")
         };
@@ -51,6 +52,7 @@
 
                     for(var pIdx = 0; pIdx < pages.length; pIdx++)
                     {
+                        settings.pageTops[pIdx] = pages[pIdx].getBoundingClientRect().top;
                         var systems = pages[pIdx].querySelectorAll('g[class=system]');
                         for(var sIdx = 0; sIdx < systems.length; sIdx++) 
                         {
@@ -206,29 +208,20 @@
             refreshVerovio();*/
         };
 
-        var updateCurrentPage = function(e)
+        var syncScroll = function(e)
         {        
-            var objArr = $(".vida-svg-object");
+            $("#vida-svg-wrapper").scrollTop($(e.target).scrollTop());
 
-            for(var cnt = 0; cnt < objArr.length; cnt++)
-            {
-                if (objArr[cnt].id != e.target.id)
-                {
-                    $(objArr[cnt]).scrollTop($(e.target).scrollTop());
-                }
-            }
-
-            console.log("Fix me, seymour");
-            var curPage = settings.systemData.length;
+            var sysIDs = Object.keys(settings.systemData);
             var curMid = $("#vida-svg-wrapper").scrollTop() + $("#vida-svg-wrapper").height() / 2;
             
-            while(curPage--)
+            for(var idx = 0; idx < sysIDs.length; idx++)
             {
-                var thisPage = settings.systemData[curPage];
-                if(curMid > thisPage.topOffset)
+                var thisPage = settings.systemData[sysIDs[idx]];
+                if(curMid < thisPage.topOffset)
                 {
                     //there's a bit at the top
-                    settings.currentPage = curPage;
+                    settings.currentPage = thisPage.pageIdx;
                     break;
                 }
             }
@@ -372,9 +365,7 @@
 
         var scrollToPage = function(pageNumber)
         {
-            $("#vida-svg-wrapper").unbind('scroll', updateCurrentPage);
-            $("#vida-svg-wrapper").scrollTop(settings.systemData[pageNumber].topOffset + 1);
-            $("#vida-svg-wrapper").on('scroll', updateCurrentPage);
+            $("#vida-svg-overlay").scrollTop(settings.pageTops[pageNumber]);
             checkNavIcons();
         };
 
@@ -420,7 +411,7 @@
         }
         else
         {
-            $("#vida-svg-wrapper").html("<h4>Load a file into Verovio!</h4>");
+            $("#vida-svg-wrapper").html("<center><h4>Load a file into Verovio!</h4></center>");
         }
 
         $(".vida-orientation-toggle").on('click', this.toggleOrientation);
@@ -445,7 +436,7 @@
             }
         });
 
-        $(".vida-svg-object").on('scroll', updateCurrentPage);
+        $("#vida-svg-overlay").on('scroll', syncScroll);
 
         $(".vida-zoom-in").on('click', function()
         {
