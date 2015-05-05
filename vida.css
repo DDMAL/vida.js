@@ -3,9 +3,16 @@
     width:95%;
     max-height:100%;
     max-width:100%;
-    margin-left:2.5%;
-    overflow-y:auto;
-    overflow-x:visible;
+    padding-left:2.5%;
+}
+
+#vida-svg-overlay{
+    overflow:scroll;
+    overflow-x:auto;
+}
+
+#vida-svg-wrapper{
+    overflow:auto;
 }
 
 svg{

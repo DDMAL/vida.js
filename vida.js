@@ -5,6 +5,7 @@
         self = this;
         var settings = {
             border: 50,
+            clickedPage: undefined,
             currentPage: 0,
             fileOnLoad: "",         //load a file in by default
             fileOnLoadIsURL: false, //whether said file is a URL or is already-loaded data
@@ -12,7 +13,7 @@
             ignoreLayout: 1,
             mei: "",
             pageHeight: 100,
-            pageTops: {},
+            pageTops: [],
             pageWidth: 100,
             scale: 40,
             svg: "",
@@ -225,27 +226,6 @@
             refreshVerovio();*/
         };
 
-        var syncScroll = function(e)
-        {        
-            $("#vida-svg-wrapper").scrollTop($(e.target).scrollTop());
-
-            var sysIDs = Object.keys(settings.systemData);
-            var curMid = $("#vida-svg-wrapper").scrollTop() + $("#vida-svg-wrapper").height() / 2;
-            
-            for(var idx = 0; idx < sysIDs.length; idx++)
-            {
-                var thisPage = settings.systemData[sysIDs[idx]];
-                if(curMid < thisPage.topOffset)
-                {
-                    //there's a bit at the top
-                    settings.currentPage = thisPage.pageIdx;
-                    break;
-                }
-            }
-
-            checkNavIcons();
-        };
-
         var drag_id = [];
         var drag_start;
         var dragging;
@@ -276,7 +256,7 @@
                 var curID = sysIDs[idx];
                 if(curID == sysID)
                 {
-                    settings.currentPage = settings.systemData[curID].pageIdx;
+                    settings.clickedPage = settings.systemData[curID].pageIdx;
                     break;
                 }
             }
@@ -307,7 +287,7 @@
             });
             // do something with the error...
             //var res = 
-            settings.verovioWorker.postMessage(['edit', editorAction, settings.currentPage, false]); 
+            settings.verovioWorker.postMessage(['edit', editorAction, settings.clickedPage, false]); 
             highlight_id( "vida-svg-wrapper", drag_id[0] );  
         };
 
@@ -317,7 +297,7 @@
             $(document).unbind("mouseup", mouseUpListener);
             if (dragging) {
                 delete this.__origin__; 
-                reloadPage( settings.currentPage, true );
+                reloadPage( settings.clickedPage, true );
                 dragging = false; 
                 drag_id.length = 0;
             }
@@ -349,6 +329,25 @@
             resizeComponents();
         }
 
+        var syncScroll = function(e)
+        {        
+            var newTop = $(e.target).scrollTop();
+            $("#vida-svg-wrapper").scrollTop(newTop);
+
+            for(var idx = 0; idx < settings.pageTops.length; idx++)
+            {
+                var thisTop = settings.pageTops[idx];
+                if(newTop <= thisTop)
+                {
+                    //there's a bit at the top
+                    settings.currentPage = idx;
+                    break;
+                }
+            }
+
+            checkNavIcons();
+        };
+
         var scrollToPage = function(pageNumber)
         {
             $("#vida-svg-overlay").scrollTop(settings.pageTops[pageNumber]);
@@ -377,11 +376,6 @@
             }
         };
 
-        var scrollToCurrentPage = function()
-        {
-            scrollToPage(settings.currentPage);
-        };
-
         if(options.fileOnLoad && options.fileOnLoadIsURL)
         {
             $.get(options.fileOnLoad, function(data) 
@@ -408,8 +402,7 @@
         {
             if (settings.currentPage < settings.totalPages - 1)
             {
-                settings.currentPage += 1;
-                scrollToCurrentPage();
+                scrollToPage(settings.currentPage + 1);
             }
         });
 
@@ -417,8 +410,7 @@
         {
             if (settings.currentPage > 0)
             {
-                settings.currentPage -= 1;
-                scrollToCurrentPage();
+                scrollToPage(settings.currentPage - 1);
             }
         });
 
