@@ -245,7 +245,7 @@
         var mouseDownListener = function(e)
         {
             var idx;
-            var t = e.target;
+            var t = e.target, tx = parseInt(t.getAttribute("x"), 10), ty = parseInt(t.getAttribute("y"), 10);
             var id = t.parentNode.attributes.id.value;
             var sysID = t.closest('.system').attributes.id.value;
             var sysIDs = Object.keys(settings.systemData);
@@ -264,7 +264,22 @@
             if (id != drag_id[0]) drag_id.unshift( id ); // make sure we don't add it twice
             //hide_id( "svg_output", drag_id[0] );
             highlight_id( "vida-svg-overlay", drag_id[0] );
-            drag_start = {"x": parseInt(t.getAttribute("x")), "initY": e.pageY, "svgY": parseInt(t.getAttribute("y")), "pixPerPix": parseInt(t.getAttribute("y")) / (e.pageY - $($("svg")[0]).offset().top)};
+
+            var viewBoxSVG = $(e.target).closest("svg");
+            var parentSVG = viewBoxSVG.parent().closest("svg")[0];
+            var actualSizeArr = viewBoxSVG[0].getAttribute("viewBox").split(" ");
+            var actualHeight = parseInt(actualSizeArr[2]);
+            var actualWidth = parseInt(actualSizeArr[3]);
+            var svgHeight = parseInt(parentSVG.getAttribute('height'));
+            var svgWidth = parseInt(parentSVG.getAttribute('width'));
+            var pixPerPix = ((actualHeight / svgHeight) + (actualWidth / svgWidth)) / 2;
+
+            drag_start = {
+                "x": tx, 
+                "initY": e.pageY, 
+                "svgY": ty, 
+                "pixPerPix": pixPerPix //ty / (e.pageY - $("#vida-svg-wrapper")[0].getBoundingClientRect().top)
+            };
             // we haven't started to drag yet, this might be just a selection
             dragging = false;
             $(document).on("mousemove", mouseMoveListener);
@@ -286,7 +301,6 @@
                 y: parseInt(scaledY) }   
             });
             // do something with the error...
-            //var res = 
             settings.verovioWorker.postMessage(['edit', editorAction, settings.clickedPage, false]); 
             highlight_id( "vida-svg-wrapper", drag_id[0] );  
         };
