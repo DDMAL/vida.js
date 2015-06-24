@@ -2,7 +2,6 @@
 {
     var vida = function(element, options)
     {
-        self = this;
         var settings = {
             border: 50,
             clickedPage: undefined,
@@ -323,7 +322,9 @@
             dragging = false;
             $(document).on("mousemove", mouseMoveListener);
             $(document).on("mouseup", mouseUpListener);
-            mei.Events.publish("HighlightSelected", [id]);
+            $(document).on("touchmove", mouseMoveListener);
+            $(document).on("touchend", mouseUpListener);
+            mei.Events.publish("HighlightSelected", [id])
         };
 
         var mouseMoveListener = function(e)
@@ -353,6 +354,8 @@
         {
             $(document).unbind("mousemove", mouseMoveListener);
             $(document).unbind("mouseup", mouseUpListener);
+            $(document).unbind("touchmove", mouseMoveListener);
+            $(document).unbind("touchend", mouseUpListener);
             if (dragging) {
                 removeHighlight("vida-svg-overlay", drag_id[0]);
                 delete this.__origin__; 
@@ -384,6 +387,7 @@
             $("#vida-svg-overlay * text").remove();
 
             $("#vida-svg-overlay * .note").on('mousedown', mouseDownListener);
+            $("#vida-svg-overlay * .note").on('touchstart', mouseDownListener);
             $("#vida-svg-overlay * defs").append("filter").attr("id", "selector");
             resizeComponents();
         }
