@@ -18,7 +18,7 @@
             svg: "",
             systemData: {}, //systemID: {'topOffset': offset, 'pageIdx'': pageidx}
             totalPages: 0,
-            verovioWorker: new Worker("vida.js/verovioWorker.js")
+            verovioWorker: new Worker(options.workerLocation)
         };
 
         var drag_id = [];
@@ -385,9 +385,14 @@
             }
 
             $("#vida-svg-overlay * text").remove();
+            $("#vida-svg-overlay").on('click.vida', function(e) {
+                var closestMeasure = $(e.target).closest(".measure");
+                if (closestMeasure.length > 0)
+                    mei.Events.publish('MeasureClicked', [closestMeasure]);
+            });
 
-            $("#vida-svg-overlay * .note").on('mousedown', mouseDownListener);
-            $("#vida-svg-overlay * .note").on('touchstart', mouseDownListener);
+            $("#vida-svg-overlay * .note").on('mousedown.vida', mouseDownListener);
+            $("#vida-svg-overlay * .note").on('touchstart.vida', mouseDownListener);
             $("#vida-svg-overlay * defs").append("filter").attr("id", "selector");
             resizeComponents();
         }

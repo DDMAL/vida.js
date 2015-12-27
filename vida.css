@@ -3,12 +3,10 @@
     width:95%;
     max-height:100%;
     max-width:100%;
-    padding-left:2.5%;
 }
 
 #vida-svg-overlay{
-    overflow:scroll;
-    overflow-x:auto;
+    overflow:auto;
 }
 
 #vida-svg-wrapper{

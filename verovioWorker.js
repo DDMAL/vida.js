@@ -13,7 +13,7 @@ var initialLoad = function(data)
     for(var curPage = 1; curPage <= totalPages; curPage++)
     {
         svgText += vrvToolkit.renderPage(curPage);
-        postMessage(["renderedPage", curPage])
+        postMessage(["renderedPage", curPage]);
     }
 
     postMessage(["meconium", svgText]);
