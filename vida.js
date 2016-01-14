@@ -223,6 +223,14 @@
             settings.verovioWorker.postMessage(['edit', editorAction]);
         };
 
+        this.scrollToObject = function(id)
+        {
+            var parent = options.parentSelector[0];
+            var index = $("#vida-svg-overlay " + id).closest('#vida-svg-overlay > svg').index("#vida-svg-overlay > svg")
+
+            scrollToPage(index);
+        };
+
         function newHighlight(div, id) 
         {
             for(var idx = 0; idx < highlighted_cache.length; idx++)
@@ -418,7 +426,11 @@
 
         var scrollToPage = function(pageNumber)
         {
-            $("#vida-svg-overlay").scrollTop(settings.pageTops[pageNumber]);
+            var toScrollTo = settings.pageTops[pageNumber];
+            if ((toScrollTo > document.querySelector("#vida-svg-overlay").getBoundingClientRect().bottom) ||
+                (toScrollTo < document.querySelector("#vida-svg-overlay").getBoundingClientRect().top))
+                $("#vida-svg-overlay").scrollTop(toScrollTo);
+            
             checkNavIcons();
         };
 
