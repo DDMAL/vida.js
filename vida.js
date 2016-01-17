@@ -393,10 +393,11 @@
             }
 
             $("#vida-svg-overlay * text").remove();
-            $("#vida-svg-overlay").on('click.vida', function(e) {
+            $(".vida-svg-object").on('click.vida', function(e) {
                 var closestMeasure = $(e.target).closest(".measure");
                 if (closestMeasure.length > 0)
                     mei.Events.publish('MeasureClicked', [closestMeasure]);
+                e.stopPropagation();
             });
 
             $("#vida-svg-overlay * .note").on('mousedown.vida', mouseDownListener);
