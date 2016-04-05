@@ -31,6 +31,11 @@
 
         var parser = new DOMParser();
 
+        this.destroy = function()
+        {
+            //TODO: something
+        };
+
         this.getSVG = function()
         {
             return settings.svg;
