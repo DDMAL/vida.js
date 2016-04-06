@@ -34,6 +34,8 @@
         this.destroy = function()
         {
             //TODO: something
+            settings.verovioWorker.terminate();
+            $(options.parentSelector).empty().removeData('vida');
         };
 
         this.getSVG = function()
@@ -545,7 +547,6 @@
         });
 
         resizeComponents();
-
     };
 
     $.fn.vida = function (options)
